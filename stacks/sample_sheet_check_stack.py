@@ -1,6 +1,5 @@
 from aws_cdk import (core as cdk,
                      aws_apigateway as apigateway,
-                     aws_s3 as s3,
                      aws_lambda as lambda_)
 
 class SampleSheetCheckStack(cdk.Stack):
