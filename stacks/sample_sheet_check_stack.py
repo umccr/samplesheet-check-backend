@@ -27,10 +27,17 @@ class SampleSheetCheckStack(cdk.Stack):
             layers=[sample_check_layer]
         )
 
+        # Cors Configuration
+        cors_config = apigateway.CorsOptions(
+            allow_origins = [ '*' ],
+            allow_methods = ["POST", "OPTIONS"]
+        )
+
         # Create an apigateway to access the function
         api = apigateway.RestApi(
             self, "sample-sheet-validation-api",
             rest_api_name = "Sample Sheet Validation",
+            default_cors_preflight_options = cors_config,
             deploy_options={
                 "logging_level": apigateway.MethodLoggingLevel.INFO,
                 "data_trace_enabled": True
