@@ -12,6 +12,9 @@ The project contains the `app.py` that is the main function of the app and direc
 
 ## To deploy the project
 
+Install all related packaged listed in the requirements.txt via the following command
+`python -m pip install -r requirements.txt`
+
 Before deploy the project layers **must** be compiled and zipped with the following command.
 
 ### Lambda layer requirement
