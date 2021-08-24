@@ -1,7 +1,9 @@
 from aws_cdk import (core as cdk,
                      aws_apigateway as apigateway,
                      aws_lambda as lambda_,
-                     aws_cognito as cognito)
+                     aws_cognito as cognito,
+                     aws_ssm as ssm
+                     )
 
 class SampleSheetCheckStack(cdk.Stack):
 
@@ -48,9 +50,14 @@ class SampleSheetCheckStack(cdk.Stack):
         # Integrate the apigateway with the lambda function
         sampleSheetValidationIntegration = apigateway.LambdaIntegration(sample_sheet_check_lambda)
         
+        # Load SSM parameter
+        arn_cognito_pool = ssm.StringParameter.from_string_parameter_attributes(self, "bucketValue",
+            parameter_name="/samplesheet-check/be/arn-cognito-pool"
+        ).string_value
+        
         # Pool Config
         user_pool = cognito.UserPool.from_user_pool_arn(self, "existingUserPool",
-            user_pool_arn="arn:aws:cognito-idp:ap-southeast-2:702956374523:userpool/ap-southeast-2_E5XfPxzX2"
+            user_pool_arn = arn_cognito_pool
         )
 
         # Authorizer config
@@ -64,4 +71,13 @@ class SampleSheetCheckStack(cdk.Stack):
         api.root.add_method("POST", sampleSheetValidationIntegration,
             authorization_type=apigateway.AuthorizationType.COGNITO,
             authorizer=auth_config
+        )
+
+        # Create SSM parameter for REST api URL
+        ssm.StringParameter(self, "samplesheetCheckLambdaApi",
+            allowed_pattern=".*",
+            description="The Lambda Rest-api Samplesheet Check",
+            parameter_name="/samplesheet-check/be/rest-api",
+            string_value=api.root.url,
+            tier=ssm.ParameterTier.STANDARD
         )
