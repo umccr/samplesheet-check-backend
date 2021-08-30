@@ -95,7 +95,7 @@ def get_local_lab_metadata(lab_spreadsheet_path, year):
     """
 
     # Import from gsuite
-    library_tracking_spreadsheet_df = read_local_excel_file(lab_spreadsheet_path, year)
+    library_tracking_spreadsheet_df = read_local_excel_file(lab_spreadsheet_path)
 
     # Check columns
     check_lab_metadata_columns(library_tracking_spreadsheet_df)
@@ -114,7 +114,7 @@ def get_local_validation_metadata(lab_spreadsheet_path):
     """
 
     # Import from gsuite
-    validation_df = read_local_excel_file(lab_spreadsheet_path, "validation")
+    validation_df = read_local_excel_file(lab_spreadsheet_path)
 
     # Check validation columns
     check_validation_metadata_columns(validation_df)
@@ -140,7 +140,7 @@ def read_gsuite_excel_file(gsuite_file_id, sheet_name):
     return spread.sheet_to_df(sheet=sheet_name, index=0, header_rows=1, start_row=1)
 
 
-def read_local_excel_file(local_path, sheet_name):
+def read_local_excel_file(local_path):
     """
     Read local excel file and parse through the sheet name as a pandas dataframe
     :param local_path:
@@ -150,11 +150,8 @@ def read_local_excel_file(local_path, sheet_name):
 
     xl = pd.ExcelFile(local_path)
 
-    for s_name in xl.sheet_names:
-        if s_name.lower() == sheet_name.lower():
-            sheet_name = s_name
 
-    return xl.parse(sheet_name=sheet_name, header=0)
+    return xl.parse()
 
 
 def check_lab_metadata_columns(lab_metadata_df):
