@@ -499,7 +499,7 @@ def check_samplesheet_header_metadata(samplesheet):
     return
 
 
-def check_metadata_correspondence(samplesheet, validation_df):
+def check_metadata_correspondence(samplesheet, auth_header , validation_df):
     """
     Checking sample sheet data against metadata df
     :param samplesheet:
@@ -535,7 +535,7 @@ def check_metadata_correspondence(samplesheet, validation_df):
                     # More serious error here
                     # Project attributes are mandatory
                     logger.error("Project {} attribute not found for project {} in validation df for {}".
-                                 format(column, sample.library_series[metadata_column], sample.sample_id))
+                                 format(metadata_column, sample.library_series[metadata_column], sample.sample_id))
                     has_error = True
 
         # check that the primary library for the topup exists

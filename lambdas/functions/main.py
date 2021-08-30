@@ -55,7 +55,7 @@ def lambda_handler(event, context):
     temporaryData.seek(0)   
 
     # Execute sample checker function
-    errorMessage = check_error(samplesheet_file_path=temporaryData.name, deploy_env="dev",
+    errorMessage = run_check(samplesheet_file_path=temporaryData.name, deploy_env="dev",
                             log_level=log_level, auth_header=auth_header)
     
     # Default CheckStatus value
@@ -64,7 +64,7 @@ def lambda_handler(event, context):
     with open('/tmp/samplesheetCheck.dev.log', 'r') as log_file:
         log_text = log_file.read()
         log_bytes_string = log_text
-    return temporaryData.name
+
     # Remove the tmp values
     os.remove('/tmp/samplesheetCheck.dev.log')
 
@@ -84,6 +84,5 @@ def lambda_handler(event, context):
     response["statusCode"] = 200
     response["body"] = json.dumps(body)
 
-    
     return response
 
