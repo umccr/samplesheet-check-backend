@@ -2,7 +2,7 @@ import email
 import json
 import tempfile
 import os
-from samplesheetCheck import main
+from samplesheetCheck import run_check
 
 # Response Template
 response = {
@@ -16,6 +16,8 @@ response = {
 }
 
 def lambda_handler(event, context):
+
+    auth_header = event["headers"]["Authorization"]
 
     body = event["body"].encode()
 
@@ -37,7 +39,6 @@ def lambda_handler(event, context):
             file_name = part.get_filename()
         multipart_content[part.get_param('name', header='content-disposition')] = part.get_payload(decode=True)
 
-    print(multipart_content)
     file_data = multipart_content["file"]
     log_level = multipart_content["logLevel"].decode("utf-8")
 
@@ -54,13 +55,16 @@ def lambda_handler(event, context):
     temporaryData.seek(0)   
 
     # Execute sample checker function
-    errorMessage = main(samplesheet_file_path=temporaryData.name, deploy_env="dev", log_level=log_level)
+    errorMessage = check_error(samplesheet_file_path=temporaryData.name, deploy_env="dev",
+                            log_level=log_level, auth_header=auth_header)
+    
+    # Default CheckStatus value
     checkStatus = "FAIL"
     # Get Log Data
     with open('/tmp/samplesheetCheck.dev.log', 'r') as log_file:
         log_text = log_file.read()
         log_bytes_string = log_text
-
+    return temporaryData.name
     # Remove the tmp values
     os.remove('/tmp/samplesheetCheck.dev.log')
 
