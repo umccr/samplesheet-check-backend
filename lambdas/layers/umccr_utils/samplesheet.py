@@ -499,11 +499,10 @@ def check_samplesheet_header_metadata(samplesheet):
     return
 
 
-def check_metadata_correspondence(samplesheet, auth_header , validation_df):
+def check_metadata_correspondence(samplesheet, auth_header):
     """
     Checking sample sheet data against metadata df
     :param samplesheet:
-    :param validation_df:
     :return:
     """
     logger.info("Checking SampleSheet data against metadata")
@@ -518,25 +517,6 @@ def check_metadata_correspondence(samplesheet, auth_header , validation_df):
         # check presence of subject ID
         if sample.library_series["subject_id"] == '':
             logger.warning(f"No subject ID for {sample.sample_id}")
-
-        # check controlled vocab: phenotype, type, source, quality
-        columns_to_validate = ["type", "phenotype", "quality", "source", "project_name", "project_owner"]
-
-        for metadata_column in columns_to_validate:
-            
-            validation_column = METADATA_VALIDATION_COLUMN_NAMES["val_{}".format(metadata_column)]
-
-            if sample.library_series[metadata_column] not in validation_df[validation_column].tolist():
-                if metadata_column in ["type", "phenotype", "quality", "source"]:
-                    logger.warn("Unsupported {} '{}' for {}".format(metadata_column,
-                                                                    sample.library_series[metadata_column],
-                                                                    sample.sample_id))
-                elif metadata_column in ["project_name", "project_owner"]:
-                    # More serious error here
-                    # Project attributes are mandatory
-                    logger.error("Project {} attribute not found for project {} in validation df for {}".
-                                 format(metadata_column, sample.library_series[metadata_column], sample.sample_id))
-                    has_error = True
 
         # check that the primary library for the topup exists
         if SAMPLE_REGEX_OBJS["topup"].search(sample.library_id) is not None:
