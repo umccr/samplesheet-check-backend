@@ -19,6 +19,11 @@ class SampleSheetCheckStack(cdk.Stack):
             description="A samplecheck library layer for python 3.8"
         )
 
+        # Load SSM parameter
+        data_portal_metadata_api = ssm.StringParameter.from_string_parameter_attributes(self, "urlValue",
+            parameter_name="/samplesheet-check/be/data-porta-metadata-api"
+        ).string_value
+
         # Create a lambda function along with the layered crated above
         sample_sheet_check_lambda = lambda_.Function(
             self,
@@ -27,7 +32,8 @@ class SampleSheetCheckStack(cdk.Stack):
             timeout=cdk.Duration.seconds(60),
             code=lambda_.Code.from_asset("lambdas/functions"),
             handler="main.lambda_handler",
-            layers=[sample_check_layer]
+            layers=[sample_check_layer],
+            environment={"data_portal_metadata_api": data_portal_metadata_api}
         )
 
         # Cors Configuration

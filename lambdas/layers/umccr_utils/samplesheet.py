@@ -24,6 +24,8 @@ from umccr_utils.globals import SAMPLE_REGEX_OBJS, SAMPLESHEET_REGEX_OBJS, OVERR
 from umccr_utils.globals import METADATA_COLUMN_NAMES, METADATA_VALIDATION_COLUMN_NAMES, \
                                 REQUIRED_SAMPLE_SHEET_DATA_COLUMN_NAMES, VALID_SAMPLE_SHEET_DATA_COLUMN_NAMES
 
+# Calling API functions
+from umccr_utils.api import get_metadata
 
 logger = get_logger()
 
@@ -142,20 +144,30 @@ class Sample:
         Extract from the library metadata sheet the override cycles count and set as sample attribute
         :return:
         """
-        self.override_cycles = self.library_series[METADATA_COLUMN_NAMES["override_cycles"]]
+        self.override_cycles = self.library_series["override_cycles"]
 
-    def set_metadata_row_for_sample(self, library_tracking_spreadsheet):
+    def set_metadata_row_for_sample(self, auth_header):
         """
-        :param library_tracking_spreadsheet: The excel library tracking sheet
+        :param auth_header: The JWT to fetch metadata
         :return:
         """
         library_id_column_var = METADATA_COLUMN_NAMES["library_id"]
         sample_id_column_var = METADATA_COLUMN_NAMES["sample_id"]
         library_id_var = self.library_id
         sample_id_var = self.sample_id
-        query_str = "{} == \"{}\" & {} == \"{}\"".format(library_id_column_var, library_id_var,
-                                                         sample_id_column_var, sample_id_var)
-        library_row = library_tracking_spreadsheet[self.year].query(query_str)
+
+        # Fetch metadata result via the API
+        metadata_result = get_metadata(sample_id_var=sample_id_var,
+                                        library_id_var=library_id_var,
+                                        auth_header=auth_header)
+
+        # Convert api result to panda dataframe
+        result_df = pd.json_normalize(metadata_result)
+
+        # Query for specific dataframe value
+        query_str_pd = "{} == \"{}\" & {} == \"{}\"".format("library_id", library_id_var,
+                                                         "sample_id", sample_id_var)
+        library_row = result_df.query(query_str_pd)
 
         # Check library_row is just one row
         if library_row.shape[0] == 0:
@@ -436,11 +448,10 @@ def get_years_from_samplesheet(samplesheet):
     return years
 
 
-def set_meta_data_by_library_id(samplesheet, library_tracking_spreadsheet):
+def set_meta_data_by_library_id(samplesheet, auth_header):
     """
     Get the library ID from the metadata tracking sheet
     :param samplesheet:
-    :param library_tracking_spreadsheet:
     :return:
     """
     has_error = False
@@ -448,7 +459,7 @@ def set_meta_data_by_library_id(samplesheet, library_tracking_spreadsheet):
 
     for sample in samplesheet:
         try:
-            sample.set_metadata_row_for_sample(library_tracking_spreadsheet)
+            sample.set_metadata_row_for_sample(auth_header=auth_header)
         except LibraryNotFoundError:
             logger.error("Error trying to find library id in tracking sheet for sample {}".format(sample.sample_id))
             error_samples.append(sample.sample_id)
@@ -488,11 +499,10 @@ def check_samplesheet_header_metadata(samplesheet):
     return
 
 
-def check_metadata_correspondence(samplesheet, library_tracking_spreadsheet, validation_df):
+def check_metadata_correspondence(samplesheet, auth_header , validation_df):
     """
     Checking sample sheet data against metadata df
     :param samplesheet:
-    :param library_tracking_spreadsheet:
     :param validation_df:
     :return:
     """
@@ -501,31 +511,31 @@ def check_metadata_correspondence(samplesheet, library_tracking_spreadsheet, val
 
     for sample in samplesheet:
         # exclude 10X samples for now, as they usually don't comply
-        if sample.library_series[METADATA_COLUMN_NAMES["type"]] == '10X':
+        if sample.library_series["type"] == '10X':
             logger.debug("Not checking metadata columns as this sample is '10X'")
             continue
 
         # check presence of subject ID
-        if sample.library_series[METADATA_COLUMN_NAMES["subject_id"]] == '':
+        if sample.library_series["subject_id"] == '':
             logger.warning(f"No subject ID for {sample.sample_id}")
 
         # check controlled vocab: phenotype, type, source, quality
         columns_to_validate = ["type", "phenotype", "quality", "source", "project_name", "project_owner"]
 
-        for column in columns_to_validate:
-            metadata_column = METADATA_COLUMN_NAMES[column]
-            validation_column = METADATA_VALIDATION_COLUMN_NAMES["val_{}".format(column)]
+        for metadata_column in columns_to_validate:
+            
+            validation_column = METADATA_VALIDATION_COLUMN_NAMES["val_{}".format(metadata_column)]
 
             if sample.library_series[metadata_column] not in validation_df[validation_column].tolist():
-                if column in ["type", "phenotype", "quality", "source"]:
+                if metadata_column in ["type", "phenotype", "quality", "source"]:
                     logger.warn("Unsupported {} '{}' for {}".format(metadata_column,
                                                                     sample.library_series[metadata_column],
                                                                     sample.sample_id))
-                elif column in ["project_name", "project_owner"]:
+                elif metadata_column in ["project_name", "project_owner"]:
                     # More serious error here
                     # Project attributes are mandatory
                     logger.error("Project {} attribute not found for project {} in validation df for {}".
-                                 format(column, sample.library_series[metadata_column], sample.sample_id))
+                                 format(metadata_column, sample.library_series[metadata_column], sample.sample_id))
                     has_error = True
 
         # check that the primary library for the topup exists
@@ -540,7 +550,7 @@ def check_metadata_correspondence(samplesheet, library_tracking_spreadsheet, val
                                      lane=None,
                                      project=None)
                 # Try get metadata for sample row
-                orig_sample.set_metadata_row_for_sample(library_tracking_spreadsheet)
+                orig_sample.set_metadata_row_for_sample(auth_header=auth_header)
             except LibraryNotFoundError:
                 logger.error("Could not find library of original sample")
                 has_error = True

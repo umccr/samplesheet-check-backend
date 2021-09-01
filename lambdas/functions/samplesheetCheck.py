@@ -12,8 +12,7 @@ from umccr_utils.logger import set_logger, set_basic_logger, get_logger
 # Get Classes
 from umccr_utils.samplesheet import SampleSheet
 # Get functions
-from umccr_utils.google_lims import get_library_sheet_from_google, import_library_sheet_validation_from_google, \
-                                    get_local_lab_metadata, get_local_validation_metadata
+from umccr_utils.google_lims import get_local_validation_metadata
 from umccr_utils.samplesheet import get_years_from_samplesheet, get_grouped_samplesheets
 # Checks
 from umccr_utils.samplesheet import check_sample_sheet_for_index_clashes,\
@@ -59,8 +58,9 @@ def get_args(samplesheet_file_path, deploy_env, log_level):
                         required=False,
                         help="Use a local metadata spreadsheet instead of quering from the google lims site."
                              "Useful for debugging scripts")
-
-    return parser.parse_args(['--check-only', samplesheet_file_path, '--deploy-env', deploy_env, '--log-level', log_level])
+    # TODO: Hardcode validation metadata
+    return parser.parse_args(['--check-only', samplesheet_file_path, '--deploy-env', deploy_env,
+        '--log-level', log_level, '--local-metadata-xlsx', './validation_value.xlsx'])
 
 
 def check_args(args):
@@ -148,14 +148,10 @@ def check_args(args):
     return args
 
 
-def main(samplesheet_file_path, deploy_env, log_level, args=None):
+def run_check(samplesheet_file_path, deploy_env, log_level, auth_header):
 
-    # Args is none if running through CLI - otherwise inherited from samplesheet
-    if args is None:
-        logger.debug("Get arguments from cli")
-        # Get args from the cli
-        args = get_args(samplesheet_file_path, deploy_env, log_level)
-    # args = parser.parse_args(['--check-only', 'samplesheet', '--deploy-env','dev'])
+    # Grab args configuration
+    args = get_args(samplesheet_file_path, deploy_env, log_level)
 
     logger.info("Checking args")
     args = check_args(args)
@@ -171,32 +167,15 @@ def main(samplesheet_file_path, deploy_env, log_level, args=None):
     else:
         logger.info("Samplesheet contains IDs from {} years: {}".format(len(years), ', '.join(map(str, list(years)))))
 
-    # Initialise tracking sheet
-    library_tracking_spreadsheet = collections.defaultdict(list)
-
-    # # Iterate through the years
-    # for year in years:
-    #     logger.debug("Reading in lims spreadsheet year: {}".format(year))
-    #     if getattr(args, "local_metadata_xlsx", None) is None:
-    #         library_tracking_spreadsheet[year] = get_library_sheet_from_google(LAB_SPREAD_SHEET_ID[args.deploy_env],
-    #                                                                            year)
-    #     else:
-    #         library_tracking_spreadsheet[year] = get_local_lab_metadata(args.local_metadata_xlsx, year)
-
-    # # Get google validation sheet
-    # if getattr(args, "local_metadata_xlsx", None) is None:
-    #     validation_df = import_library_sheet_validation_from_google(LAB_SPREAD_SHEET_ID[args.deploy_env])
-    # else:
-    #     validation_df = get_local_validation_metadata(args.local_metadata_xlsx)
-
+    validation_df = get_local_validation_metadata("./validation_value.xlsx")
     # Run through checks
     try:
         check_samplesheet_header_metadata(sample_sheet)
         check_sample_sheet_for_index_clashes(sample_sheet)
-        # set_meta_data_by_library_id(sample_sheet, library_tracking_spreadsheet)
-        # check_metadata_correspondence(sample_sheet, library_tracking_spreadsheet, validation_df)
-        # check_global_override_cycles(sample_sheet)
-        # check_internal_override_cycles(sample_sheet)
+        set_meta_data_by_library_id(sample_sheet, auth_header=auth_header)
+        check_metadata_correspondence(sample_sheet,auth_header=auth_header, validation_df=validation_df)
+        check_global_override_cycles(sample_sheet)
+        check_internal_override_cycles(sample_sheet)
     except SampleSheetHeaderError:
         logger.error("Samplesheet header did not have the appropriate attributes")
         return ("Samplesheet header did not have the appropriate attributes")
@@ -233,6 +212,3 @@ def main(samplesheet_file_path, deploy_env, log_level, args=None):
         with open(out_file, "w") as samplesheet_h:
             samplesheet.write(samplesheet_h)
 
-
-if __name__ == "__main__":
-    main()
