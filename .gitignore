@@ -7,6 +7,7 @@ __pycache__
 *.egg-info
 *.zip
 *.vscode
+.idea
 
 # CDK asset staging directory
 .cdk.staging
