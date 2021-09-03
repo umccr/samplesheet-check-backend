@@ -46,16 +46,16 @@ class SampleSheetCheckStack(cdk.Stack):
             string_parameter_name="hosted_zone_name"
         ).string_value
         
-        cert_apse2_arn = ssm.StringParameter.from_string_parameter_name(
+        cert_use1_arn = ssm.StringParameter.from_string_parameter_name(
             self,
-            "SSLCertAPSE2ARN",
-            string_parameter_name="/htsget/acm/apse2_arn",
+            "SSLCertUSE1ARN",
+            string_parameter_name="cert_use1_arn",
         )
 
-        cert_apse2 = acm.Certificate.from_certificate_arn(
+        cert_use1 = acm.Certificate.from_certificate_arn(
             self,
-            "SSLCertAPSE2",
-            certificate_arn=cert_apse2_arn.string_value,
+            "SSLCertUSE1",
+            certificate_arn=cert_use1_arn.string_value,
         )
         # Create a Lambda Layer
         sample_check_layer = lambda_.LayerVersion(
@@ -90,8 +90,9 @@ class SampleSheetCheckStack(cdk.Stack):
             rest_api_name = "Sample Sheet Validation",
             default_cors_preflight_options = cors_config,
             domain_name=apigateway.DomainNameOptions(
-                domain_name= domain_name,
-                certificate=cert_apse2
+                domain_name="api."+domain_name,
+                certificate=cert_use1,
+                endpoint_type=apigateway.EndpointType.EDGE
             ),
             deploy_options={
                 "logging_level": apigateway.MethodLoggingLevel.INFO,
