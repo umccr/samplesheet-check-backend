@@ -1,9 +1,13 @@
-from aws_cdk import (core as cdk,
-                     aws_apigateway as apigateway,
-                     aws_lambda as lambda_,
-                     aws_cognito as cognito,
-                     aws_ssm as ssm
-                     )
+from aws_cdk import (
+    core as cdk,
+    aws_apigateway as apigateway,
+    aws_lambda as lambda_,
+    aws_cognito as cognito,
+    aws_ssm as ssm,
+    aws_route53 as route53,
+    aws_route53_targets as route53t,
+    aws_certificatemanager as acm
+)
 
 class SampleSheetCheckStack(cdk.Stack):
 
@@ -22,6 +26,37 @@ class SampleSheetCheckStack(cdk.Stack):
             parameter_name="/sscheck/metadata-api"
         ).string_value
 
+        # Query domain_name config from SSM Parameter Store (Created via Conosle)
+        domain_name = ssm.StringParameter.from_string_parameter_name(
+            self,
+            "DomainName",
+            string_parameter_name="/sscheck/domain",
+        ).string_value
+
+        # --- Query deployment env specific config from SSM Parameter Store
+        hosted_zone_id = ssm.StringParameter.from_string_parameter_name(
+            self,
+            "HostedZoneID",
+            string_parameter_name="hosted_zone_id"
+        ).string_value
+
+        hosted_zone_name = ssm.StringParameter.from_string_parameter_name(
+            self,
+            "HostedZoneName",
+            string_parameter_name="hosted_zone_name"
+        ).string_value
+        
+        cert_apse2_arn = ssm.StringParameter.from_string_parameter_name(
+            self,
+            "SSLCertAPSE2ARN",
+            string_parameter_name="/htsget/acm/apse2_arn",
+        )
+
+        cert_apse2 = acm.Certificate.from_certificate_arn(
+            self,
+            "SSLCertAPSE2",
+            certificate_arn=cert_apse2_arn.string_value,
+        )
         # Create a Lambda Layer
         sample_check_layer = lambda_.LayerVersion(
             self,
@@ -54,6 +89,10 @@ class SampleSheetCheckStack(cdk.Stack):
             self, "sample-sheet-validation-api",
             rest_api_name = "Sample Sheet Validation",
             default_cors_preflight_options = cors_config,
+            domain_name=apigateway.DomainNameOptions(
+                domain_name= domain_name,
+                certificate=cert_apse2
+            ),
             deploy_options={
                 "logging_level": apigateway.MethodLoggingLevel.INFO,
                 "data_trace_enabled": True
@@ -82,8 +121,25 @@ class SampleSheetCheckStack(cdk.Stack):
             authorization_type=apigateway.AuthorizationType.COGNITO,
             authorizer=auth_config
         )
+
+        hosted_zone = route53.HostedZone.from_hosted_zone_attributes(
+            self,
+            "HostedZone",
+            hosted_zone_id=hosted_zone_id,
+            zone_name=hosted_zone_name,
+        )
+
+        route53.ARecord(
+            self,
+            "CreateARecordLambdaApi",
+            target=route53.RecordTarget(
+                alias_target=route53t.ApiGateway(api)
+            ),
+            zone=hosted_zone,
+            record_name="api.sscheck"
+        )
         
-        # Create SSM parameter for REST api URL
+        # Write SSM parameter for REST api URL
         ssm.StringParameter(self, "samplesheetCheckLambdaApi",
             allowed_pattern=".*",
             description="The Lambda Rest-api Samplesheet Check",
