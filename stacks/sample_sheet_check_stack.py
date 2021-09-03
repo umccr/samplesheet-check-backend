@@ -10,6 +10,18 @@ class SampleSheetCheckStack(cdk.Stack):
     def __init__(self, scope: cdk.Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
+        # --- Cognito parameters are from data portal terraform stack
+        cog_user_pool_id = ssm.StringParameter.from_string_parameter_name(
+            self,
+            "CogUserPoolID",
+            string_parameter_name="/data_portal/client/cog_user_pool_id",
+        ).string_value
+
+        # Load SSM parameter (created Via Console)
+        data_portal_metadata_api = ssm.StringParameter.from_string_parameter_attributes(self, "urlValue",
+            parameter_name="/sscheck/metadata-api"
+        ).string_value
+
         # Create a Lambda Layer
         sample_check_layer = lambda_.LayerVersion(
             self,
@@ -18,11 +30,6 @@ class SampleSheetCheckStack(cdk.Stack):
             compatible_runtimes=[lambda_.Runtime.PYTHON_3_8],
             description="A samplecheck library layer for python 3.8"
         )
-
-        # Load SSM parameter
-        data_portal_metadata_api = ssm.StringParameter.from_string_parameter_attributes(self, "urlValue",
-            parameter_name="/samplesheet-check/be/data-porta-metadata-api"
-        ).string_value
 
         # Create a lambda function along with the layered crated above
         sample_sheet_check_lambda = lambda_.Function(
@@ -56,19 +63,16 @@ class SampleSheetCheckStack(cdk.Stack):
         # Integrate the apigateway with the lambda function
         sampleSheetValidationIntegration = apigateway.LambdaIntegration(sample_sheet_check_lambda)
         
-        # Load SSM parameter
-        arn_cognito_pool = ssm.StringParameter.from_string_parameter_attributes(self, "bucketValue",
-            parameter_name="/samplesheet-check/be/arn-cognito-pool"
-        ).string_value
-        
         # Pool Config
-        user_pool = cognito.UserPool.from_user_pool_arn(self, "existingUserPool",
-            user_pool_arn = arn_cognito_pool
+        cog_user_pool = cognito.UserPool.from_user_pool_id(
+            self,
+            "ExistingUserPool",
+            cog_user_pool_id
         )
 
         # Authorizer config
         auth_config = apigateway.CognitoUserPoolsAuthorizer(self, "cognitoAuthorizer",
-            cognito_user_pools=[user_pool],
+            cognito_user_pools=[cog_user_pool],
             authorizer_name = "cognitoAuthorizer",
             identity_source = apigateway.IdentitySource.header('Authorization')
         )
@@ -78,12 +82,13 @@ class SampleSheetCheckStack(cdk.Stack):
             authorization_type=apigateway.AuthorizationType.COGNITO,
             authorizer=auth_config
         )
-
+        
         # Create SSM parameter for REST api URL
         ssm.StringParameter(self, "samplesheetCheckLambdaApi",
             allowed_pattern=".*",
             description="The Lambda Rest-api Samplesheet Check",
-            parameter_name="/samplesheet-check/be/rest-api",
+            parameter_name="/sscheck/lambda-api",
             string_value=api.root.url,
             tier=ssm.ParameterTier.STANDARD
         )
+
