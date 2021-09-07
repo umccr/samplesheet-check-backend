@@ -9,7 +9,7 @@ from aws_cdk import (
     aws_certificatemanager as acm
 )
 
-class SampleSheetCheckStack(cdk.Stack):
+class SampleSheetCheckBackendStack(cdk.Stack):
 
     def __init__(self, scope: cdk.Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -130,7 +130,7 @@ class SampleSheetCheckStack(cdk.Stack):
             zone_name=hosted_zone_name,
         )
 
-        route53.ARecord(
+        route53_lambda_api = route53.ARecord(
             self,
             "CreateARecordLambdaApi",
             target=route53.RecordTarget(
@@ -144,8 +144,8 @@ class SampleSheetCheckStack(cdk.Stack):
         ssm.StringParameter(self, "samplesheetCheckLambdaApi",
             allowed_pattern=".*",
             description="The Lambda Rest-api Samplesheet Check",
-            parameter_name="/sscheck/lambda-api",
-            string_value=api.root.url,
+            parameter_name="/sscheck/lambda-api-domain",
+            string_value=route53_lambda_api.domain_name,
             tier=ssm.ParameterTier.STANDARD
         )
 
