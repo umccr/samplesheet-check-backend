@@ -2,7 +2,7 @@ import email
 import json
 import tempfile
 import os
-from samplesheetCheck import run_check
+from samplesheet_check import run_check
 
 # Response Template
 response = {
