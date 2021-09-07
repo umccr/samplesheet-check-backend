@@ -22,6 +22,9 @@ def get_metadata(sample_id_var, library_id_var, auth_header):
     headers=headers
   )
 
+  if response.status_code < 200 or response.status_code >= 300:
+    raise ValueError
+
   data = response.json()
 
   query_result = data["results"]

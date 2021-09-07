@@ -157,9 +157,12 @@ class Sample:
         sample_id_var = self.sample_id
 
         # Fetch metadata result via the API
-        metadata_result = get_metadata(sample_id_var=sample_id_var,
-                                        library_id_var=library_id_var,
-                                        auth_header=auth_header)
+        try:
+            metadata_result = get_metadata(sample_id_var=sample_id_var,
+                                            library_id_var=library_id_var,
+                                            auth_header=auth_header)
+        except:
+            raise MetaDataError
 
         # Convert api result to panda dataframe
         result_df = pd.json_normalize(metadata_result)
