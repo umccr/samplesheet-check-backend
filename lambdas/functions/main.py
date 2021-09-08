@@ -61,12 +61,12 @@ def lambda_handler(event, context):
     # Default CheckStatus value
     checkStatus = "FAIL"
     # Get Log Data
-    with open('/tmp/samplesheetCheck.dev.log', 'r') as log_file:
+    with open('/tmp/samplesheet_check.dev.log', 'r') as log_file:
         log_text = log_file.read()
         log_bytes_string = log_text
 
     # Remove the tmp values
-    os.remove('/tmp/samplesheetCheck.dev.log')
+    os.remove('/tmp/samplesheet_check.dev.log')
 
     # Determine result status
     if errorMessage:

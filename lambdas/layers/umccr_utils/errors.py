@@ -93,3 +93,9 @@ class InvalidColumnError(Exception):
     This column is not recognised
     """
     pass
+
+class ApiCallError(Exception):
+    """
+    Failure on API calls
+    """
+    pass

@@ -15,7 +15,8 @@ from umccr_utils.logger import get_logger
 # Errors
 from umccr_utils.errors import SampleSheetFormatError, SampleDuplicateError, SampleNotFoundError, \
     ColumnNotFoundError, LibraryNotFoundError, MultipleLibraryError, GetMetaDataError, SimilarIndexError, \
-    SampleSheetHeaderError, MetaDataError, InvalidColumnError, SampleNameFormatError, OverrideCyclesError
+    SampleSheetHeaderError, MetaDataError, InvalidColumnError, SampleNameFormatError, OverrideCyclesError, \
+    ApiCallError
 
 # Regexes
 from umccr_utils.globals import SAMPLE_REGEX_OBJS, SAMPLESHEET_REGEX_OBJS, OVERRIDE_CYCLES_OBJS, MIN_INDEX_HAMMING_DISTANCE
@@ -162,10 +163,20 @@ class Sample:
                                             library_id_var=library_id_var,
                                             auth_header=auth_header)
         except:
-            raise MetaDataError
+            logger.error("Fail to fetch metadata api for library id '{}' and sample id '{}'"
+                         "in columns {} and {} respectively".format(library_id_var, sample_id_var,
+                                                                    library_id_column_var, sample_id_column_var))
+            raise ApiCallError
 
         # Convert api result to panda dataframe
         result_df = pd.json_normalize(metadata_result)
+
+        # Check result_df exist
+        if result_df.shape[0] == 0:
+            logger.error("Got no rows back for library id '{}' and sample id '{}'"
+                         "in columns {} and {} respectively".format(library_id_var, sample_id_var,
+                                                                    library_id_column_var, sample_id_column_var))
+            raise LibraryNotFoundError
 
         # Query for specific dataframe value
         query_str_pd = "{} == \"{}\" & {} == \"{}\"".format("library_id", library_id_var,
@@ -173,12 +184,7 @@ class Sample:
         library_row = result_df.query(query_str_pd)
 
         # Check library_row is just one row
-        if library_row.shape[0] == 0:
-            logger.error("Got no rows back for library id '{}' and sample id '{}'"
-                         "in columns {} and {} respectively".format(library_id_var, sample_id_var,
-                                                                    library_id_column_var, sample_id_column_var))
-            raise LibraryNotFoundError
-        elif not library_row.shape[0] == 1:
+        if not library_row.shape[0] == 1:
             logger.error("Got multiple rows back for library id '{}' and sample id '{}'"
                          "in columns {} and {} respectively".format(library_id_var, sample_id_var,
                                                                     library_id_column_var, sample_id_column_var))
@@ -471,6 +477,9 @@ def set_meta_data_by_library_id(samplesheet, auth_header):
             logger.error("Got multiple rows from tracking sheet for sample {}".format(sample.sample_id))
             error_samples.append(sample.sample_id)
             has_error = True
+        except ApiCallError:
+            logger.error("API call fail")
+            has_error = True
         else:
             # Now we can set other things that may need to be done
             # Once we can confirm the metadata
@@ -540,6 +549,9 @@ def check_metadata_correspondence(samplesheet, auth_header):
             except MultipleLibraryError:
                 logger.error("It seems that there is multiple libraries for the original sample")
                 has_error = True
+            except ApiCallError:
+                logger.error("API call fails")
+                has_error=True
 
     if not has_error:
         return
