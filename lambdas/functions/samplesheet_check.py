@@ -20,7 +20,7 @@ from umccr_utils.samplesheet import check_sample_sheet_for_index_clashes,\
 # Sets
 from umccr_utils.samplesheet import set_meta_data_by_library_id
 # Errors
-from umccr_utils.errors import SampleSheetHeaderError, SimilarIndexError, \
+from umccr_utils.errors import GetMetaDataError, SampleSheetHeaderError, SimilarIndexError, \
                                SampleNameFormatError, MetaDataError, OverrideCyclesError
 
 # Relative paths
@@ -172,6 +172,9 @@ def run_check(samplesheet_file_path, deploy_env, log_level, auth_header):
     except OverrideCyclesError:
         logger.error("Override cycles check failed")
         return ("Override cycles check failed")
+    except GetMetaDataError:
+        logger.error("Unable to get metadata")
+        return ("Unable to get metadata")
 
     # Split and write individual SampleSheets, based on indexes and technology (10X)
     if args.check_only:

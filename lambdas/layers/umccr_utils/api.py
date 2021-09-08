@@ -21,7 +21,8 @@ def get_metadata(sample_id_var, library_id_var, auth_header):
     params=parameter,
     headers=headers
   )
-
+  
+  # Raise an error for non 200 status code
   if response.status_code < 200 or response.status_code >= 300:
     raise ValueError
 
