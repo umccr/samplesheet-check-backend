@@ -10,7 +10,7 @@ response = {
     "body": "",
     'headers': {
         'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Origin': [ 'https://sscheck.dev.umccr.org', 'https://sscheck.prod.umccr.org', 'https://sscheck.umccr.org' ],
         'Access-Control-Allow-Methods': 'OPTIONS,POST,GET',
     },
 }
