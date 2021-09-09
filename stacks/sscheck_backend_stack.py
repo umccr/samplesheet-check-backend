@@ -80,7 +80,7 @@ class SampleSheetCheckBackendStack(cdk.Stack):
 
         # Cors Configuration
         cors_config = apigateway.CorsOptions(
-            allow_origins = [ '*' ],
+            allow_origins = [ 'https://sscheck.dev.umccr.org', 'https://sscheck.prod.umccr.org', 'https://sscheck.umccr.org' ],
             allow_methods = ["POST", "OPTIONS"]
         )
 
