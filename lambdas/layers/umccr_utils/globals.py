@@ -7,9 +7,6 @@ GLOBALS used in projects
 * SAMPLE SHEET REGEXES
 * GOOGLE LIMS
 * LOGS
-* INSTRUMENTS
-* AWS S3
-
 
 """
 
@@ -156,47 +153,6 @@ LAB_SPREAD_SHEET_ID = {
     "prod": "1pZRph8a6-795odibsvhxCqfC6l0hHZzKbGYpesgNXOA"
 }
 
-LIMS_SPREAD_SHEET_ID = {
-    "dev": '1vX89Km1D8dm12aTl_552GMVPwOkEHo6sdf1zgI6Rq0g',
-    "prod": '1aaTvXrZSdA1ekiLEpW60OeNq2V7D_oEMBzTgC-uDJAM'
-}
-
-LIMS_SPREAD_SHEET_NAMES = {
-    "SHEET_NAME_RUNS": "Sheet1",
-    "SHEET_NAME_FAILED": "Failed Runs"
-}
-
-LIMS_COLUMNS = {  # Columns in order!
-  "illumina_id": 'IlluminaID',
-  "run": 'Run',
-  "timestamp": 'Timestamp',
-  "subject_id": 'SubjectID',  # the internal ID for the subject/patient
-  "sample_id": 'SampleID',  # the internal ID for the sample
-  "library_id": 'LibraryID',  # the internal ID for the library
-  "external_subject_id": 'ExternalSubjectID',  # the external (provided) ID for the subject/patient
-  "external_sample_id": 'ExternalSampleID',  # is the external (provided) sample ID
-  "external_library_id": 'ExternalLibraryID',  # is the external (provided) library ID
-  "sample_name": 'SampleName',  # the sample name assigned by the lab
-  "project_owner": 'ProjectOwner',
-  "project_name": 'ProjectName',
-  "project_custodian": 'ProjectCustodian',
-  "type": 'Type',  # the assay type: WGS, WTS, 10X, ...
-  "assay": 'Assay',
-  "override_cycles": 'OverrideCycles',
-  "phenotype": 'Phenotype',  # tomor, normal, negative-control, ...
-  "source": 'Source',  # tissue, FFPE, ...
-  "quality": 'Quality',  # Good, Poor, Borderline
-  "topup": 'Topup',
-  "secondary_analysis": 'SecondaryAnalysis',
-  "workflow": 'Workflow',
-  "tags": 'Tags',
-  "fastq": 'FASTQ',
-  "number_fastqs": 'NumberFASTQS',
-  "results": 'Results',
-  "trello": 'Trello',
-  "notes": 'Notes',
-  "todo": 'ToDo',
-}
 
 """
 LOGS
@@ -209,96 +165,6 @@ LOG_FILE_SUFFIX = {
 
 LOGGER_STYLE = "%(asctime)s - %(levelname)-8s - %(module)-25s - %(funcName)-40s : LineNo. %(lineno)-4d - %(message)s"
 
-"""
-INSTRUMENTS
-"""
-
-INSTRUMENT_NAMES = {
-    "A01052": "Po",
-    "A00130": "Baymax"
-}
-
-
-"""
-AWS S3
-"""
-FASTQ_S3_BUCKET = {
-    "prod": 's3://umccr-fastq-data-prod/'
-}
-
-"""
-NOVASTOR PATHS
-"""
-
-NOVASTOR_RAW_BCL_DIR = {
-    "prod": "/storage/shared/raw",
-    "dev": "/storage/shared/dev"
-}
-
-NOVASTOR_FASTQ_OUTPUT_DIR = {
-    "prod": "/storage/shared/bcl2fastq_output",
-    "dev": "/storage/shared/dev/bcl2fastq_output"
-}
-
-NOVASTOR_CRED_PATHS = {
-    "google_write_token": "/home/limsadmin/.google/google-lims-updater-b50921f70155.json"
-}
-
-NOVASTOR_CSV_DIR = "/tmp"
-
-"""
-RUN NAME REGEXES
-
-A run comprises
-
-<YYMMDD>_<MACHINE_ID>_<RUN_ID>_<SLOT><FLOWCELL_ID>
-"""
-
-# Taken from
-# https://regexlib.com/REDetails.aspx?regexp_id=326
-# Test seen here
-# https://regex101.com/r/TCSmm5/3
-DATE_STR = r"(?:(?:\d{2}(?:(?:0[13578]|1[02])(?:0[1-9]|[12]\d|3[01])|(?:0[13456789]|1[012])" \
-           r"(?:0[1-9]|[12]\d|30)|02(?:0[1-9]|1\d|2[0-8])))|(?:[02468][048]|[13579][26])0229)"
-
-
-# https://regex101.com/r/2iCeNg/1
-MACHINE_STR = r"(?:{})".format("|".join(list(INSTRUMENT_NAMES.keys())))
-
-# RUN_STR
-RUNID_STR = r"(?:\d{4})"  # Four digit int
-
-SLOT_STR = r"(?:A|B)"
-
-# From
-# https://support.illumina.com/help/BaseSpace_ClarityLIMS_OLH_115205/Content/Source/ClarityLIMS/Integrations/ConfigurationUpdateRequiredforNovaSeqFlowcellBarcodeSuffixChange.htm
-FLOWCELL_REGEX_STR = {
-    "SP": r"\w{5}DRX[XY2357]",
-    "S1": r"\w{5}DRX[XY2357]",
-    "S2": r"\w{5}DMX[XY2357]",
-    "S4": r"\w{5}DSX[XY2357]"
-}
-
-# https://regex101.com/r/2gdY7O/1
-FLOWCELL_REGEX_STR["all"] = r'(?:{})'.format("|".join(list(FLOWCELL_REGEX_STR.values())))
-
-# Now combine all into a perfect - easy-to-read - capturing regex
-RUN_REGEX_OBJS = {
-    # https://regex101.com/r/AYy9es/1
-    "run": re.compile(r"({})_({})_({})_({})({})".format(
-        DATE_STR, MACHINE_STR, RUNID_STR, SLOT_STR, FLOWCELL_REGEX_STR['all']
-    )),
-    # https://regex101.com/r/gBd5gx/1
-    "run_fullmatch": re.compile(r"{}_{}_{}_{}{}".format(
-        DATE_STR, MACHINE_STR, RUNID_STR, SLOT_STR, FLOWCELL_REGEX_STR['all']
-    ))
-}
-
-"""
-GOOGLE ACCOUNT
-"""
-
-GSERVICE_ACCOUNT = "data-portal@umccr-portal.iam.gserviceaccount.com"
 
 
 """
@@ -306,3 +172,7 @@ INDEX DISTANCES
 """
 
 MIN_INDEX_HAMMING_DISTANCE = 3
+
+LOG_DIRECTORY = {
+    "samplesheet_check" : "/tmp/samplesheet_check.log"
+}

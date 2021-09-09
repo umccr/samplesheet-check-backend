@@ -50,7 +50,7 @@ def set_basic_logger():
     return logger
 
 
-def set_logger(script_dir, script, deploy_env, log_level=logging.DEBUG):
+def set_logger(log_path, log_level=logging.DEBUG):
     """
     Initialise a logger
     :return:
@@ -62,8 +62,7 @@ def set_logger(script_dir, script, deploy_env, log_level=logging.DEBUG):
     formatter = logging.Formatter(LOGGER_STYLE)
 
     # create a file handler
-    file_handler = RotatingFileHandler(filename=script_dir / "{}.{}".format(script, LOG_FILE_SUFFIX[deploy_env]),
-                                       maxBytes=100000000, backupCount=5)
+    file_handler = RotatingFileHandler(filename=log_path, maxBytes=100000000, backupCount=5)
     # Set Level
     file_handler.setLevel(log_level)
     file_handler.setFormatter(formatter)
