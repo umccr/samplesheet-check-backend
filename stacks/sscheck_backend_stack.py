@@ -22,6 +22,11 @@ class SampleSheetCheckBackendStack(cdk.Stack):
         ).string_value
 
         # Load SSM parameter (created Via Console)
+        app_stage = ssm.StringParameter.from_string_parameter_name(
+            self,
+            "AppStage",
+            string_parameter_name="/sscheck/stage",
+        ).string_value
         data_portal_metadata_api = ssm.StringParameter.from_string_parameter_attributes(self, "urlValue",
             parameter_name="/sscheck/metadata-api"
         ).string_value
@@ -87,17 +92,18 @@ class SampleSheetCheckBackendStack(cdk.Stack):
         # Create an apigateway to access the function
         api = apigateway.RestApi(
             self, "sample-sheet-validation-api",
-            rest_api_name = "Sample Sheet Validation",
+            rest_api_name = "sample-sheet-validation",
             default_cors_preflight_options = cors_config,
             domain_name=apigateway.DomainNameOptions(
                 domain_name="api."+domain_name,
                 certificate=cert_use1,
                 endpoint_type=apigateway.EndpointType.EDGE
             ),
-            deploy_options={
-                "logging_level": apigateway.MethodLoggingLevel.INFO,
-                "data_trace_enabled": True
-            }
+            deploy_options=apigateway.StageOptions(
+                logging_level= apigateway.MethodLoggingLevel.INFO,
+                data_trace_enabled=True,
+                stage_name="dev"
+            )
         )
 
         # Integrate the apigateway with the lambda function
