@@ -144,27 +144,12 @@ OVERRIDE_CYCLES_OBJS = {
     "indexes": re.compile(OVERRIDE_CYCLES_STR["indexes"])
 }
 
-"""
-GOOGLE LIMS
-"""
-
-LAB_SPREAD_SHEET_ID = {
-    "dev": "1Pgz13btHOJePiImo-NceA8oJKiQBbkWI5D2dLdKpPiY",
-    "prod": "1pZRph8a6-795odibsvhxCqfC6l0hHZzKbGYpesgNXOA"
-}
 
 
 """
 LOGS
 """
-
-LOG_FILE_SUFFIX = {
-    "dev": "dev.log",
-    "prod": "prod.log"
-}
-
 LOGGER_STYLE = "%(asctime)s - %(levelname)-8s - %(module)-25s - %(funcName)-40s : LineNo. %(lineno)-4d - %(message)s"
-
 
 
 """

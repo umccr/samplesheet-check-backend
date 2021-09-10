@@ -35,7 +35,6 @@ def construct_response(status_code, body, origin):
     else:
         return_origin = allowed_origin_list[0]
         
-    
     response =  {
         'statusCode': status_code,
         'headers': {

@@ -1,16 +1,7 @@
 #!/usr/bin/env python3
-import sys
-import os
-import argparse
-import collections
-from pathlib import Path
 
-# Globals
-from umccr_utils.globals import LAB_SPREAD_SHEET_ID
 # Logger
 from umccr_utils.logger import set_logger, set_basic_logger, get_logger
-# Get Classes
-from umccr_utils.samplesheet import SampleSheet
 # Get functions
 from umccr_utils.samplesheet import get_years_from_samplesheet, get_grouped_samplesheets
 # Checks
@@ -23,10 +14,7 @@ from umccr_utils.samplesheet import set_meta_data_by_library_id
 from umccr_utils.errors import GetMetaDataError, SampleSheetHeaderError, SimilarIndexError, \
                                SampleNameFormatError, MetaDataError, OverrideCyclesError
 
-# Relative paths
-SCRIPT = Path(__file__)
-SCRIPT_DIR = Path("/tmp")
-SCRIPT_STEM = SCRIPT.stem
+# Logger
 logger = set_basic_logger()
 
 
