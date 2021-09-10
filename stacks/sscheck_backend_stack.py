@@ -102,7 +102,6 @@ class SampleSheetCheckBackendStack(cdk.Stack):
             deploy_options=apigateway.StageOptions(
                 logging_level= apigateway.MethodLoggingLevel.INFO,
                 data_trace_enabled=True,
-                stage_name="dev"
             )
         )
 
