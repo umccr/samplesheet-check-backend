@@ -67,18 +67,6 @@ def test_check_samplesheet_header_metadata(mocker):
 
     assert result_func == None, "No error in the expected Sample"
 
-# def test_check_metadata_correspondence(mocker):
-#     # Mock sample value
-#     sample_sheet = SampleSheet(os.path.dirname(
-#         os.path.abspath(__file__)) + "/sample-1")
-
-#     ## Mock for valid Input
-#     mocker.patch("samplesheet.Sample", result_value=None )
-#     mocker.patch.object(Sample, 'set_metadata_row_for_sample', result_value="set_metadata_row_for_sample function executed" )
-
-#     result_func = check_metadata_correspondence(sample_sheet,"JWT-TOKEN")
-
-#     assert result_func == None, "No Error is executed"
 
 def test_check_sample_sheet_for_index_clashes(mocker):
     # Mock sample value
@@ -93,8 +81,3 @@ def test_check_sample_sheet_for_index_clashes(mocker):
     mocker.patch('samplesheet.compare_two_indexes', side_effect=SimilarIndexError)
     with pytest.raises(SimilarIndexError):
         check_sample_sheet_for_index_clashes(sample_sheet)
-
-# def test_check_internal_override_cycles():
-# def test_check_global_override_cycles():
-# def test_compare_two_indexes():
-# def test_get_grouped_samplesheets():
