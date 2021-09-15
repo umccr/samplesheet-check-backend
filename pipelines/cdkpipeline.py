@@ -25,7 +25,7 @@ class CdkPipelineStack(cdk.Stack):
 
         # Load SSM parameter for GitHub repo (Created via Console)
         codestar_arn = ssm.StringParameter.from_string_parameter_attributes(self, "codestarArn",
-            parameter_name="/sscheck/codestar-connection-arn"
+            parameter_name="codestar_github_arn"
         ).string_value
 
         cloud_artifact = codepipeline.Artifact(
@@ -50,7 +50,7 @@ class CdkPipelineStack(cdk.Stack):
         # Create CDK pipeline
         pipeline = pipelines.CdkPipeline(
             self,
-            "CDKPipeline",
+            "CDKSampleSheetCheckBackEndPipeline",
             cloud_assembly_artifact = cloud_artifact,
             pipeline_name="CDKSampleSheetCheckBackEnd",
             source_action = code_star_action,
@@ -73,8 +73,7 @@ class CdkPipelineStack(cdk.Stack):
                     "cfn_nag_scan --input-path ./cfnnag_output"
                 ],
                 action_name = "Synth",
-                project_name = "cdk_synth",
-                subdirectory = "deploy"
+                project_name = "SampleSheetCheckBackEndSynth",
             )
 
         )
