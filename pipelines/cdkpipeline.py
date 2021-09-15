@@ -6,7 +6,7 @@ from aws_cdk import (
     aws_codepipeline as codepipeline,
     aws_s3 as s3,
     aws_codepipeline_actions as codepipeline_actions,
-    aws_iam as iam
+    aws_codebuild as codebuild
 )
 from stacks.sscheck_backend_stack import SampleSheetCheckBackEndStack
 
@@ -58,6 +58,9 @@ class CdkPipelineStack(cdk.Stack):
                 synth_command = "cdk synth",
                 cloud_assembly_artifact = cloud_artifact,
                 source_artifact = source_artifact,
+                environment = codebuild.BuildEnvironment(
+                    privileged=True
+                ),
                 install_commands = [
                     "npm install -g aws-cdk",
                     "gem install cfn-nag",
@@ -65,7 +68,7 @@ class CdkPipelineStack(cdk.Stack):
                     "docker -v"
                 ],
                 build_commands = [
-                    "for dir in $(find ./lambdas/layers/ -maxdepth 1 -mindepth 1 -type d); do ./build_lambda_layers.sh ${dir}; done"
+                    "for dir in $(find ./lambdas/layers/ -maxdepth 1 -mindepth 1 -type d); do /bin/bash ./build_lambda_layers.sh ${dir}; done"
                 ],
                 test_commands = [
                     "mkdir ./cfnnag_output",
