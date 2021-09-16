@@ -75,7 +75,7 @@ class CdkPipelineStack(cdk.Stack):
                     "for dir in $(find ./lambdas/layers/ -maxdepth 1 -mindepth 1 -type d); do /bin/bash ./build_lambda_layers.sh ${dir}; done"
                 ],
                 test_commands = [
-                    "cdk synth"
+                    "cdk synth",
                     "mkdir ./cfnnag_output",
                     "for template in $(find ./cdk.out -type f -maxdepth 2 -name '*.template.json'); do cp $template ./cfnnag_output; done",
                     "cfn_nag_scan --input-path ./cfnnag_output"
