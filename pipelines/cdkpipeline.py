@@ -56,6 +56,7 @@ class CdkPipelineStack(cdk.Stack):
             self,
             "CDKSampleSheetCheckBackEndPipeline",
             cloud_assembly_artifact = cloud_artifact,
+            cross_account_keys =False,
             pipeline_name="sscheck-back-end-dev",
             source_action = code_star_action,
             synth_action = pipelines.SimpleSynthAction(
