@@ -4,7 +4,6 @@ from aws_cdk import (
     pipelines,
     core as cdk,
     aws_codepipeline as codepipeline,
-    aws_s3 as s3,
     aws_codepipeline_actions as codepipeline_actions,
     aws_codebuild as codebuild
 )
