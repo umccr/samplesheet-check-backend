@@ -15,7 +15,11 @@ class SampleSheetCheckBackEndStage(cdk.Stage):
         super().__init__(scope, construct_id, **kwargs)
 
         # Create stack defined on stacks folder
-        SampleSheetCheckBackEndStack(self, "SampleSheetCheckEnd")
+        SampleSheetCheckBackEndStack(
+            self,
+            "SampleSheetCheckBackEnd",
+            stack_name="sscheck-back-end-stack-dev"
+        )
 
 # Class for the CDK pipeline stack
 class CdkPipelineStack(cdk.Stack):
@@ -52,7 +56,7 @@ class CdkPipelineStack(cdk.Stack):
             self,
             "CDKSampleSheetCheckBackEndPipeline",
             cloud_assembly_artifact = cloud_artifact,
-            pipeline_name="CDKSampleSheetCheckBackEnd",
+            pipeline_name="sscheck-back-end-dev",
             source_action = code_star_action,
             synth_action = pipelines.SimpleSynthAction(
                 synth_command = "cdk synth",
@@ -71,6 +75,7 @@ class CdkPipelineStack(cdk.Stack):
                     "for dir in $(find ./lambdas/layers/ -maxdepth 1 -mindepth 1 -type d); do /bin/bash ./build_lambda_layers.sh ${dir}; done"
                 ],
                 test_commands = [
+                    "cdk synth"
                     "mkdir ./cfnnag_output",
                     "for template in $(find ./cdk.out -type f -maxdepth 2 -name '*.template.json'); do cp $template ./cfnnag_output; done",
                     "cfn_nag_scan --input-path ./cfnnag_output"
@@ -86,7 +91,7 @@ class CdkPipelineStack(cdk.Stack):
         pipeline.add_application_stage(
             SampleSheetCheckBackEndStage(
                 self,
-                "SampleSheetCheckBackEndStage",
+                "SampleSheetCheckBackEndStage"
             )
         )
 
