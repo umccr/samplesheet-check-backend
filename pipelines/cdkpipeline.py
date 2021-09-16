@@ -81,7 +81,7 @@ class CdkPipelineStack(cdk.Stack):
                     "cfn_nag_scan --input-path ./cfnnag_output"
                 ],
                 action_name = "Synth",
-                project_name = "SampleSheetCheckBackEndSynth",
+                project_name = "sscheck-back-end-synth-dev",
             )
 
         )
