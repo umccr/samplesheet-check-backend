@@ -1,15 +1,9 @@
-# Add umccr_util directory to python path
-import sys, os
-sys.path.append(os.path.join(sys.path[0],'..'))
-sys.path.append(os.path.join(sys.path[0],'..','..'))
-sys.path.append(os.path.join(sys.path[0],'..','..', 'layers'))
-
 import json
 import sys
 from unittest import TestCase, mock, main
 
 # Import method
-from functions.main import lambda_handler
+from main import lambda_handler
 
 # Declaring truncated test data input
 test_data_1 = r"""
@@ -59,8 +53,8 @@ expected_result_2 = r"""
 
 class MainUnitTestCase(TestCase):
 
-  @mock.patch("functions.main.SampleSheet", mock.MagicMock(return_value=""))
-  @mock.patch("functions.main.run_check", mock.MagicMock(return_value=""))
+  @mock.patch("main.SampleSheet", mock.MagicMock(return_value=""))
+  @mock.patch("main.run_check", mock.MagicMock(return_value=""))
   def test_pass_lambda_handler(self):
 
     # Parse input to JSON
@@ -74,8 +68,8 @@ class MainUnitTestCase(TestCase):
     body_result = json.loads((lambda_handler(json_input, ""))["body"])
     assert body_result == json_expected_result, "Unexpected Value"
 
-  @mock.patch("functions.main.SampleSheet", mock.MagicMock(return_value=""))
-  @mock.patch("functions.main.run_check", mock.MagicMock(return_value="Found at least two indexes that were too similar to each other"))
+  @mock.patch("main.SampleSheet", mock.MagicMock(return_value=""))
+  @mock.patch("main.run_check", mock.MagicMock(return_value="Found at least two indexes that were too similar to each other"))
   def test_fail_lambda_handler(self):
 
     # Parse input to JSON

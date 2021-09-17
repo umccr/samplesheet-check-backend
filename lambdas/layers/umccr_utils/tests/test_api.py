@@ -1,14 +1,55 @@
 # Add umccr_util directory to python path
-import sys, os
-sys.path.append(os.path.join(sys.path[0],'..'))
+import os, json
 
-from unittest import TestCase, main
-from api import get_metadata
+from unittest import TestCase, mock, main
+from umccr_utils.api import get_metadata
+
+"""Mock requests get function"""
+def mocked_valid_get_requests(*args, **kwargs):
+    class MockResponse:
+        def __init__(self, json_data, status_code):
+            self.json_data = json_data
+            self.status_code = status_code
+
+        def json(self):
+            return self.json_data
+
+    expected_result = {
+        "results": [
+            {
+                "id": 2420,
+                "library_id": "L2100999",
+                "sample_id": "MDX210239",
+            }
+        ]
+    }
+
+    return MockResponse(expected_result,200)
+
+def mocked_invalid_get_requests(*args, **kwargs):
+    class MockResponse:
+        def __init__(self, json_data, status_code):
+            self.json_data = json_data
+            self.status_code = status_code
+
+        def json(self):
+            return self.json_data
+
+    expected_result = {
+        "results": []
+    }
+    return MockResponse(expected_result,200)
+
 
 class ApiUnitTestCase(TestCase):
+    """Start UnitTest"""
+    
+    def setUp(self):
+        os.environ["data_portal_metadata_api"] = "https://api.data.dev.umccr.org/metadata"
 
     ### Testing valid parameter
-    def test_valid_metadata(self):
+    @mock.patch('umccr_utils.api.requests.get', side_effect=mocked_valid_get_requests)
+    def test_valid_metadata(self, mock_get):
 
         # A list of tuple which contain a valid existing data
         # Format: ( SampleID, LibraryID )
@@ -20,11 +61,11 @@ class ApiUnitTestCase(TestCase):
 
         for sample_id_var, library_id_var in valid_parameter:
             func_test_result = get_metadata(sample_id_var, library_id_var, auth_header=os.getenv('dev_data_portal_jwt'))
-
             assert type(func_test_result) is list, "Expected to have a list type data"
             assert len(func_test_result) >= 1, "Expected to have at least a matching data"
 
-    def test_get_invalid_metadata(self):
+    @mock.patch('umccr_utils.api.requests.get', side_effect=mocked_invalid_get_requests)
+    def test_get_invalid_metadata(self, get_mock):
         # A list of tuple which contain a valid existing data
         # Format: ( SampleID, LibraryID )
         invalid_parameter = [
