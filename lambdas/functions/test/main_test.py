@@ -50,11 +50,12 @@ expected_result_2 = r"""
 {
   "checkStatus": "FAIL",
   "errorMessage": "Found at least two indexes that were too similar to each other",
-  "log_file": "2021-09-07 07:37:58,187 - ERROR    - samplesheet               - check_sample_sheet_for_index_clashes     : LineNo. 610  - i7 indexes ATTCAGAA and GTTGAGAA are too similar to run in the same lanewith i5 indexes AGGCTATA and  are too similar to run in the same lane \n2021-09-07 07:37:58,827 - ERROR    - samplesheet               - check_sample_sheet_for_index_clashes     : LineNo. 610  - i7 indexes TGGATCGA and TGGATTGC are too similar to run in the same lanewith i5 indexes GTGCGATA and  are too similar to run in the same lane \n2021-09-07 07:37:58,865 - ERROR    - samplesheet               - check_sample_sheet_for_index_clashes     : LineNo. 610  - i7 indexes TGGATCGA and GTGATCGA are too similar to run in the same lanewith i5 indexes GTGCGATA and  are too similar to run in the same lane \n2021-09-07 07:37:59,425 - ERROR    - samplesheetCheck          - run_check                                : LineNo. 167  - Found at least two indexes that were too similar to each other\n"
+  "log_file": "2021-09-07 07:37:58,187 - ERROR    - samplesheet               - check_sample_sheet_for_index_clashes     : LineNo. 610  - i7 indexes ATTCAGAA and GTTGAGAA are too similar to run in the same lanewith i5 indexes AGGCTATA and  are too similar to run in the same lane \n2021-09-07 07:37:58,827 - ERROR    - samplesheet               - check_sample_sheet_for_index_clashes     : LineNo. 610  - i7 indexes TGGATCGA and TGGATTGC are too similar to run in the same lanewith i5 indexes GTGCGATA and  are too similar to run in the same lane \n2021-09-07 07:37:58,865 - ERROR    - samplesheet               - check_sample_sheet_for_index_clashes     : LineNo. 610  - i7 indexes TGGATCGA and GTGATCGA are too similar to run in the same lanewith i5 indexes GTGCGATA and  are too similar to run in the same lane \n2021-09-07 07:37:59,425 - ERROR    - samplesheet_check          - run_check                                : LineNo. 167  - Found at least two indexes that were too similar to each other\n"
 }
 """
 def test_lambda_handler_PASS(mocker):
   # Patch function to return no error
+  mocker.patch('functions.main.SampleSheet', return_value="")
   mocker.patch('functions.main.run_check', return_value="")
 
   # Parse input to JSON
@@ -62,16 +63,17 @@ def test_lambda_handler_PASS(mocker):
   json_expected_result = json.loads(expected_result_1)
 
   # Create an empty log file
-  open('/tmp/samplesheetCheck.dev.log', "x")
+  open('/tmp/samplesheet_check.log', "x")
 
   # Run the function
-  body_result = json.loads(lambda_handler(json_input, "")["body"])
+  body_result = json.loads(lambda_handler(json_input, ""))["body"]
   
-  assert body_result == json_expected_result, "Unexpected Value"
+  assert json.loads(body_result) == json_expected_result, "Unexpected Value"
 
 
 def test_lambda_handler_FAIL(mocker):
   # Patch function to return no error
+  mocker.patch('functions.main.SampleSheet', return_value="")
   mocker.patch('functions.main.run_check', return_value="Found at least two indexes that were too similar to each other")
 
   # Parse input to JSON
@@ -79,12 +81,12 @@ def test_lambda_handler_FAIL(mocker):
   json_expected_result = json.loads(expected_result_2)
 
   # Create log file with error content
-  f = open('/tmp/samplesheetCheck.dev.log', "a")
-  f.write("2021-09-07 07:37:58,187 - ERROR    - samplesheet               - check_sample_sheet_for_index_clashes     : LineNo. 610  - i7 indexes ATTCAGAA and GTTGAGAA are too similar to run in the same lanewith i5 indexes AGGCTATA and  are too similar to run in the same lane \n2021-09-07 07:37:58,827 - ERROR    - samplesheet               - check_sample_sheet_for_index_clashes     : LineNo. 610  - i7 indexes TGGATCGA and TGGATTGC are too similar to run in the same lanewith i5 indexes GTGCGATA and  are too similar to run in the same lane \n2021-09-07 07:37:58,865 - ERROR    - samplesheet               - check_sample_sheet_for_index_clashes     : LineNo. 610  - i7 indexes TGGATCGA and GTGATCGA are too similar to run in the same lanewith i5 indexes GTGCGATA and  are too similar to run in the same lane \n2021-09-07 07:37:59,425 - ERROR    - samplesheetCheck          - run_check                                : LineNo. 167  - Found at least two indexes that were too similar to each other\n")
+  f = open('/tmp/samplesheet_check.log', "a")
+  f.write("2021-09-07 07:37:58,187 - ERROR    - samplesheet               - check_sample_sheet_for_index_clashes     : LineNo. 610  - i7 indexes ATTCAGAA and GTTGAGAA are too similar to run in the same lanewith i5 indexes AGGCTATA and  are too similar to run in the same lane \n2021-09-07 07:37:58,827 - ERROR    - samplesheet               - check_sample_sheet_for_index_clashes     : LineNo. 610  - i7 indexes TGGATCGA and TGGATTGC are too similar to run in the same lanewith i5 indexes GTGCGATA and  are too similar to run in the same lane \n2021-09-07 07:37:58,865 - ERROR    - samplesheet               - check_sample_sheet_for_index_clashes     : LineNo. 610  - i7 indexes TGGATCGA and GTGATCGA are too similar to run in the same lanewith i5 indexes GTGCGATA and  are too similar to run in the same lane \n2021-09-07 07:37:59,425 - ERROR    - samplesheet_check          - run_check                                : LineNo. 167  - Found at least two indexes that were too similar to each other\n")
   f.close()
 
   # Run the function
-  body_result = json.loads(lambda_handler(json_input, "")["body"])
+  body_result = json.loads(lambda_handler(json_input, ""))["body"]
 
   # Assert to check expected result
-  assert body_result == json_expected_result, "Unexpected Value"
+  assert json.loads(body_result) == json_expected_result, "Unexpected Value"
