@@ -1,0 +1,23 @@
+[Header],,,,,,,,,,
+IEMFileVersion,5,,,,,,,,,
+Experiment Name,Mock Sample,,,,,,,,,
+Date,1/07/2021,,,,,,,,,
+Workflow,GenerateFASTQ,,,,,,,,,
+Application,NovaSeq FASTQ Only,,,,,,,,,
+Instrument Type,NovaSeq,,,,,,,,,
+Assay,TruSeq Nano DNA,,,,,,,,,
+Index Adapters,IDT-ILMN TruSeq DNA UD Indexes (96 Indexes),,,,,,,,,
+Chemistry,Amplicon,,,,,,,,,
+,,,,,,,,,,
+[Reads],,,,,,,,,,
+151,,,,,,,,,,
+151,,,,,,,,,,
+,,,,,,,,,,
+[Settings],,,,,,,,,,
+Adapter,AGATAGATAGATAGATAGATAGATAGATAGATA,,,,,,,,,
+AdapterRead2,AGATAGATAGATAGATAGATAGATAGATAGATA,,,,,,,,,
+,,,,,,,,,,
+[Data],,,,,,,,,,
+Sample_ID,Sample_Name,Sample_Plate,Sample_Well,Index_Plate_Well,I7_Index_ID,index,I5_Index_ID,index2,Sample_Project,Description
+PRJ000000_L0000000,L0000000,,,A00,UDI0000,TACCGAGG,UDI0000,AGTTCAGG,Beoui,HostPathogen
+PRJ000000_L0000000,L0000000,,,A00,UDI0000,TACCGAGG,UDI0000,AGTTCAGG,Beoui,HostPathogen
