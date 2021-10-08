@@ -17,7 +17,7 @@ class SampleSheetCheckBackEndStage(cdk.Stage):
         SampleSheetCheckBackEndStack(
             self,
             "SampleSheetCheckBackEnd",
-            stack_name="sscheck-back-end-stack-dev"
+            stack_name="sscheck-back-end-stack"
         )
 
 # Class for the CDK pipeline stack
@@ -56,7 +56,7 @@ class CdkPipelineStack(cdk.Stack):
             "CDKSampleSheetCheckBackEndPipeline",
             cloud_assembly_artifact = cloud_artifact,
             cross_account_keys =False,
-            pipeline_name="sscheck-back-end-dev",
+            pipeline_name="sscheck-back-end",
             source_action = code_star_action,
             synth_action = pipelines.SimpleSynthAction(
                 synth_command = "cdk synth",
@@ -81,7 +81,7 @@ class CdkPipelineStack(cdk.Stack):
                     "cfn_nag_scan --input-path ./cfnnag_output"
                 ],
                 action_name = "Synth",
-                project_name = "sscheck-back-end-synth-dev",
+                project_name = "sscheck-back-end-synth",
             )
 
         )

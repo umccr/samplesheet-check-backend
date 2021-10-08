@@ -21,16 +21,16 @@ class SampleSheetCheckBackEndStack(cdk.Stack):
             string_parameter_name="/data_portal/client/cog_user_pool_id",
         ).string_value
 
-        # Load SSM parameter (created Via Console)
-        data_portal_metadata_api = ssm.StringParameter.from_string_parameter_attributes(self, "urlValue",
-            parameter_name="/sscheck/metadata-api"
+        # Load SSM parameter
+        data_portal_domain_name = ssm.StringParameter.from_string_parameter_attributes(self, "urlValue",
+            parameter_name="/data_portal/backend/api_domain_name"
         ).string_value
 
-        # Query domain_name config from SSM Parameter Store (Created via Conosle)
-        domain_name = ssm.StringParameter.from_string_parameter_name(
+        # Query umccr_domain
+        umccr_domain = ssm.StringParameter.from_string_parameter_name(
             self,
             "DomainName",
-            string_parameter_name="/sscheck/domain",
+            string_parameter_name="umccr_domain",
         ).string_value
 
         # --- Query deployment env specific config from SSM Parameter Store
@@ -75,7 +75,7 @@ class SampleSheetCheckBackEndStack(cdk.Stack):
             code=lambda_.Code.from_asset("lambdas/functions"),
             handler="main.lambda_handler",
             layers=[sample_check_layer],
-            environment={"data_portal_metadata_api": data_portal_metadata_api}
+            environment={"data_portal_domain_name": data_portal_domain_name}
         )
 
         # Cors Configuration
@@ -90,7 +90,7 @@ class SampleSheetCheckBackEndStack(cdk.Stack):
             rest_api_name = "Sample Sheet Validation",
             default_cors_preflight_options = cors_config,
             domain_name=apigateway.DomainNameOptions(
-                domain_name="api."+domain_name,
+                domain_name="api.sscheck." + umccr_domain,
                 certificate=cert_use1,
                 endpoint_type=apigateway.EndpointType.EDGE
             ),
