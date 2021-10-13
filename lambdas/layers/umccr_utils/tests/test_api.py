@@ -45,7 +45,7 @@ class ApiUnitTestCase(TestCase):
     """Start UnitTest"""
     
     def setUp(self):
-        os.environ["data_portal_metadata_api"] = "https://api.data.dev.umccr.org/metadata"
+        os.environ["data_portal_domain_name"] = "api.data.dev.umccr.org"
 
     ### Testing valid parameter
     @mock.patch('umccr_utils.api.requests.get', side_effect=mocked_valid_get_requests)

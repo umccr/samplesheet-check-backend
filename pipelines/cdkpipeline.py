@@ -75,10 +75,20 @@ class CdkPipelineStack(cdk.Stack):
                     "for dir in $(find ./lambdas/layers/ -maxdepth 1 -mindepth 1 -type d); do /bin/bash ./build_lambda_layers.sh ${dir}; done"
                 ],
                 test_commands = [
+                    # CDK lint test
                     "cdk synth",
                     "mkdir ./cfnnag_output",
                     "for template in $(find ./cdk.out -type f -maxdepth 2 -name '*.template.json'); do cp $template ./cfnnag_output; done",
-                    "cfn_nag_scan --input-path ./cfnnag_output"
+                    "cfn_nag_scan --input-path ./cfnnag_output",
+
+                    # Lambda testing
+                    "for dir in $(find layers/ -maxdepth 1 -mindepth 1 -type d); do pip install -r ${dir}/requirements.txt; done",
+                    "cd layers",
+                    "python -m unittest umccr_utils/tests/test_api.py",
+                    "python -m unittest umccr_utils/tests/test_samplesheet.py",
+                    "cd ../functions",
+                    "python -m unittest tests/*",
+
                 ],
                 action_name = "Synth",
                 project_name = "sscheck-back-end-synth",

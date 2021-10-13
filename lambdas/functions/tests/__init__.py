@@ -1,9 +1,8 @@
 # Add umccr_util directory to python path
 import os
 import sys
-PROJECT_PATH = os.getcwd()
+DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 SOURCE_PATH = os.path.join(
-    PROJECT_PATH,"..","layers" 
+    DIR_PATH, "..", "..", "layers"
 )
 sys.path.append(SOURCE_PATH)
-
