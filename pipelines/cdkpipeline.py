@@ -82,6 +82,7 @@ class CdkPipelineStack(cdk.Stack):
                     "cfn_nag_scan --input-path ./cfnnag_output",
 
                     # Lambda testing
+                    "cd lambdas",
                     "for dir in $(find layers/ -maxdepth 1 -mindepth 1 -type d); do pip install -r ${dir}/requirements.txt; done",
                     "cd layers",
                     "python -m unittest umccr_utils/tests/test_api.py",
