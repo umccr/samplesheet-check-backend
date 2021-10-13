@@ -89,6 +89,7 @@ class CdkPipelineStack(cdk.Stack):
                     "python -m unittest umccr_utils/tests/test_samplesheet.py",
                     "cd ../functions",
                     "python -m unittest tests/*",
+                    "cd ../.."
 
                 ],
                 action_name = "Synth",
