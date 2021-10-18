@@ -5,7 +5,9 @@ from aws_cdk import (
     core as cdk,
     aws_codepipeline as codepipeline,
     aws_codepipeline_actions as codepipeline_actions,
-    aws_codebuild as codebuild
+    aws_codebuild as codebuild,
+    aws_chatbot as chatbot,
+    aws_codestarnotifications as codestarnotifications
 )
 from stacks.sscheck_backend_stack import SampleSheetCheckBackEndStack
 
@@ -108,3 +110,27 @@ class CdkPipelineStack(cdk.Stack):
         )
 
 
+        # SSM parameter for AWS chatbot ARN
+        data_portal_slack_arn = ssm.StringParameter.from_string_parameter_attributes(
+            self,
+            "SlackDataPortal",
+            parameter_name="/data_portal/slack_arn"
+        ).string_value
+
+        # AWS ChatBot
+        data_portal_slack = chatbot.SlackChannelConfiguration.from_slack_channel_configuration_arn(
+            self,
+            "DataPortalChatbotSlack",
+            slack_channel_configuration_arn=data_portal_slack_arn
+        )
+
+        # Add Chatbot Notificaiton
+        pipeline.code_pipeline.notify_on(
+            "SlackNotificationSscheckBackEndPipeline",
+            target=data_portal_slack,
+            events=[codepipeline.PipelineNotificationEvents.PIPELINE_EXECUTION_FAILED,
+                    codepipeline.PipelineNotificationEvents.PIPELINE_EXECUTION_SUCCEEDED
+                    ],
+            detail_type=codestarnotifications.DetailType.BASIC,
+            enabled=True,
+            notification_rule_name="SlackNotificationSscheckBackEndPipeline")
