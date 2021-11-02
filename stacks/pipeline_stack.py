@@ -6,7 +6,8 @@ from aws_cdk import (
     aws_s3 as s3,
     aws_codepipeline as codepipeline,
     aws_sns as sns,
-    aws_codestarnotifications as codestarnotifications
+    aws_codestarnotifications as codestarnotifications,
+    aws_codebuild as codebuild
 )
 from stacks.sscheck_backend_stack import SampleSheetCheckBackEndStack
 
@@ -108,6 +109,12 @@ class PipelineStack(cdk.Stack):
                     "docker -v"
                 ],
                 primary_output_directory="cdk.out"
+            ),
+            code_build_defaults=pipelines.CodeBuildOptions(
+                build_environment=codebuild.BuildEnvironment(
+                    build_image=codebuild.LinuxBuildImage.STANDARD_5_0,
+                    privileged=True
+                )
             )
         )
 
