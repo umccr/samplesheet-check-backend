@@ -81,10 +81,6 @@ class PipelineStack(cdk.Stack):
                 input=code_pipeline_source,
                 commands=[
                     "for dir in $(find ./lambdas/layers/ -maxdepth 1 -mindepth 1 -type d); do /bin/bash ./build_lambda_layers.sh ${dir}; done",
-                    "cdk synth",
-                    "mkdir ./cfnnag_output",
-                    "for template in $(find ./cdk.out -type f -maxdepth 2 -name '*.template.json'); do cp $template ./cfnnag_output; done",
-                    "cfn_nag_scan --input-path ./cfnnag_output",
 
                     # CDK lint test
                     "cdk synth",
