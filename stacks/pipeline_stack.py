@@ -3,9 +3,8 @@ from aws_cdk import (
     aws_ssm as ssm,
     pipelines,
     core as cdk,
+    aws_s3 as s3,
     aws_codepipeline as codepipeline,
-    aws_codepipeline_actions as codepipeline_actions,
-    aws_codebuild as codebuild,
     aws_sns as sns,
     aws_codestarnotifications as codestarnotifications
 )
@@ -15,68 +14,77 @@ class SampleSheetCheckBackEndStage(cdk.Stage):
     def __init__(self, scope: cdk.Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
+        app_stage = self.node.try_get_context("app_stage")
+
         # Create stack defined on stacks folder
         SampleSheetCheckBackEndStack(
             self,
             "SampleSheetCheckBackEnd",
-            stack_name="sscheck-back-end-stack"
+            stack_name="sscheck-backend-stack",
+            tags={
+                "stage": app_stage,
+                "stack": "sscheck-backend-stack"
+            }
         )
 
 # Class for the CDK pipeline stack
-class CdkPipelineStack(cdk.Stack):
+class PipelineStack(cdk.Stack):
 
     def __init__(self, scope: cdk.Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
+
+        # Defining app stage
+        app_stage = self.node.try_get_context("app_stage")
+        props = self.node.try_get_context("props")
 
         # Load SSM parameter for GitHub repo (Created via Console)
         codestar_arn = ssm.StringParameter.from_string_parameter_attributes(self, "codestarArn",
             parameter_name="codestar_github_arn"
         ).string_value
 
-        cloud_artifact = codepipeline.Artifact(
-            artifact_name="sscheck_pipeline_cloud"
+        # Create S3 bucket for artifacts
+        pipeline_artifact_bucket = s3.Bucket(
+            self, 
+            "sscheck-backend-artifact-bucket", 
+            bucket_name = props["pipeline_artifact_bucket_name"][app_stage],
+            auto_delete_objects = True,
+            removal_policy = cdk.RemovalPolicy.DESTROY,
+            block_public_access= s3.BlockPublicAccess.BLOCK_ALL
         )
 
-        source_artifact = codepipeline.Artifact(
-            artifact_name="sscheck_pipeline_source",
+        # Create a pipeline for status page
+        sscheck_backend_pipeline = codepipeline.Pipeline(
+            self,
+            "SSCheckBackEndPipeline",
+            artifact_bucket=pipeline_artifact_bucket,
+            restart_execution_on_update=True,
+            cross_account_keys=False,
+            pipeline_name=props["pipeline_name"][app_stage],
         )
 
         # Fetch github repository for changes
-        code_star_action = codepipeline_actions.CodeStarConnectionsSourceAction(
-            connection_arn = codestar_arn,
-            output = source_artifact,
-            owner = "umccr",
-            repo = "samplesheet-check-backend",
-            branch = "dev",
-            action_name = "Source"
+        code_pipeline_source = pipelines.CodePipelineSource.connection(
+            repo_string=props["repository_source"],
+            branch=props["branch_source"][app_stage],
+            connection_arn=codestar_arn,
+            trigger_on_push=True
         )
 
-
-        # Create CDK pipeline
-        pipeline = pipelines.CdkPipeline(
+        # Create A pipeline for cdk stack and react build
+        self_mutate_pipeline = pipelines.CodePipeline(
             self,
-            "CDKSampleSheetCheckBackEndPipeline",
-            cloud_assembly_artifact = cloud_artifact,
-            cross_account_keys =False,
-            pipeline_name="sscheck-back-end",
-            source_action = code_star_action,
-            synth_action = pipelines.SimpleSynthAction(
-                synth_command = "cdk synth",
-                cloud_assembly_artifact = cloud_artifact,
-                source_artifact = source_artifact,
-                environment = codebuild.BuildEnvironment(
-                    privileged=True
-                ),
-                install_commands = [
-                    "npm install -g aws-cdk",
-                    "gem install cfn-nag",
-                    "pip install -r requirements.txt",
-                    "docker -v"
-                ],
-                build_commands = [
-                    "for dir in $(find ./lambdas/layers/ -maxdepth 1 -mindepth 1 -type d); do /bin/bash ./build_lambda_layers.sh ${dir}; done"
-                ],
-                test_commands = [
+            "CodePipeline",
+            code_pipeline=sscheck_backend_pipeline,
+            synth=pipelines.ShellStep(
+                "CDKShellScript",
+                input=code_pipeline_source,
+                commands=[
+                    "for dir in $(find ./lambdas/layers/ -maxdepth 1 -mindepth 1 -type d); do /bin/bash ./build_lambda_layers.sh ${dir}; done",
+                    "cdk synth",
+                    "mkdir ./cfnnag_output",
+                    "for template in $(find ./cdk.out -type f -maxdepth 2 -name '*.template.json'); do cp $template ./cfnnag_output; done",
+                    "cfn_nag_scan --input-path ./cfnnag_output",
+
                     # CDK lint test
                     "cdk synth",
                     "mkdir ./cfnnag_output",
@@ -92,23 +100,26 @@ class CdkPipelineStack(cdk.Stack):
                     "cd ../functions",
                     "python -m unittest tests/*",
                     "cd ../.."
-
                 ],
-                action_name = "Synth",
-                project_name = "sscheck-back-end-synth",
+                install_commands=[
+                    "npm install -g aws-cdk",
+                    "gem install cfn-nag",
+                    "pip install -r requirements.txt",
+                    "docker -v"
+                ],
+                primary_output_directory="cdk.out"
             )
-
         )
-            
 
         # Deploy infrastructure
-        pipeline.add_application_stage(
+        self_mutate_pipeline.add_stage(
             SampleSheetCheckBackEndStage(
                 self,
                 "SampleSheetCheckBackEndStage"
             )
         )
 
+        self_mutate_pipeline.build_pipeline()
 
         # SSM parameter for AWS SNS ARN
         data_portal_notification_sns_arn = ssm.StringParameter.from_string_parameter_attributes(
@@ -125,7 +136,7 @@ class CdkPipelineStack(cdk.Stack):
         )
 
         # Add Chatbot Notificaiton
-        pipeline.code_pipeline.notify_on(
+        self_mutate_pipeline.pipeline.notify_on(
             "SlackNotificationSscheckBackEndPipeline",
             target=data_portal_sns_notification,
             events=[

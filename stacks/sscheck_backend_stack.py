@@ -49,7 +49,7 @@ class SampleSheetCheckBackEndStack(cdk.Stack):
         cert_use1_arn = ssm.StringParameter.from_string_parameter_name(
             self,
             "SSLCertUSE1ARN",
-            string_parameter_name="cert_use1_arn",
+            string_parameter_name="/sscheck/api/ssl_certificate_arn",
         )
 
         cert_use1 = acm.Certificate.from_certificate_arn(
@@ -57,6 +57,7 @@ class SampleSheetCheckBackEndStack(cdk.Stack):
             "SSLCertUSE1",
             certificate_arn=cert_use1_arn.string_value,
         )
+
         # Create a Lambda Layer
         sample_check_layer = lambda_.LayerVersion(
             self,
