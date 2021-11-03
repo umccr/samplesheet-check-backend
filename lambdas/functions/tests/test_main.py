@@ -1,12 +1,9 @@
-# Add umccr_util directory to python path
-import sys, os
-sys.path.append(os.path.join(sys.path[0],'..'))
-sys.path.append(os.path.join(sys.path[0],'..','..'))
-sys.path.append(os.path.join(sys.path[0],'..','..', 'layers'))
-
 import json
 import sys
-from functions.main import lambda_handler
+from unittest import TestCase, mock, main
+
+# Import method
+from main import lambda_handler
 
 # Declaring truncated test data input
 test_data_1 = r"""
@@ -25,8 +22,8 @@ test_data_1 = r"""
 
 expected_result_1 = r"""
 {
-  "checkStatus": "PASS",
-  "errorMessage": "",
+  "check_status": "PASS",
+  "error_message": "",
   "log_file": ""
 }
 """
@@ -48,45 +45,47 @@ test_data_2 =r"""
 """
 expected_result_2 = r"""
 {
-  "checkStatus": "FAIL",
-  "errorMessage": "Found at least two indexes that were too similar to each other",
+  "check_status": "FAIL",
+  "error_message": "Found at least two indexes that were too similar to each other",
   "log_file": "2021-09-07 07:37:58,187 - ERROR    - samplesheet               - check_sample_sheet_for_index_clashes     : LineNo. 610  - i7 indexes ATTCAGAA and GTTGAGAA are too similar to run in the same lanewith i5 indexes AGGCTATA and  are too similar to run in the same lane \n2021-09-07 07:37:58,827 - ERROR    - samplesheet               - check_sample_sheet_for_index_clashes     : LineNo. 610  - i7 indexes TGGATCGA and TGGATTGC are too similar to run in the same lanewith i5 indexes GTGCGATA and  are too similar to run in the same lane \n2021-09-07 07:37:58,865 - ERROR    - samplesheet               - check_sample_sheet_for_index_clashes     : LineNo. 610  - i7 indexes TGGATCGA and GTGATCGA are too similar to run in the same lanewith i5 indexes GTGCGATA and  are too similar to run in the same lane \n2021-09-07 07:37:59,425 - ERROR    - samplesheet_check          - run_check                                : LineNo. 167  - Found at least two indexes that were too similar to each other\n"
 }
 """
-def test_lambda_handler_PASS(mocker):
-  # Patch function to return no error
-  mocker.patch('functions.main.SampleSheet', return_value="")
-  mocker.patch('functions.main.run_check', return_value="")
 
-  # Parse input to JSON
-  json_input = json.loads(test_data_1)
-  json_expected_result = json.loads(expected_result_1)
+class MainUnitTestCase(TestCase):
 
-  # Create an empty log file
-  open('/tmp/samplesheet_check.log', "x")
+  @mock.patch("main.SampleSheet", mock.MagicMock(return_value=""))
+  @mock.patch("main.run_check", mock.MagicMock(return_value=""))
+  def test_pass_lambda_handler(self):
 
-  # Run the function
-  body_result = json.loads(lambda_handler(json_input, ""))["body"]
-  
-  assert json.loads(body_result) == json_expected_result, "Unexpected Value"
+    # Parse input to JSON
+    json_input = json.loads(test_data_1)
+    json_expected_result = json.loads(expected_result_1)
 
+    # Create an empty log file
+    open('/tmp/samplesheet_check.log', "x")
 
-def test_lambda_handler_FAIL(mocker):
-  # Patch function to return no error
-  mocker.patch('functions.main.SampleSheet', return_value="")
-  mocker.patch('functions.main.run_check', return_value="Found at least two indexes that were too similar to each other")
+    # Run the function
+    body_result = json.loads((lambda_handler(json_input, ""))["body"])
+    assert body_result == json_expected_result, "Unexpected Value"
 
-  # Parse input to JSON
-  json_input = json.loads(test_data_2)
-  json_expected_result = json.loads(expected_result_2)
+  @mock.patch("main.SampleSheet", mock.MagicMock(return_value=""))
+  @mock.patch("main.run_check", mock.MagicMock(return_value="Found at least two indexes that were too similar to each other"))
+  def test_fail_lambda_handler(self):
 
-  # Create log file with error content
-  f = open('/tmp/samplesheet_check.log', "a")
-  f.write("2021-09-07 07:37:58,187 - ERROR    - samplesheet               - check_sample_sheet_for_index_clashes     : LineNo. 610  - i7 indexes ATTCAGAA and GTTGAGAA are too similar to run in the same lanewith i5 indexes AGGCTATA and  are too similar to run in the same lane \n2021-09-07 07:37:58,827 - ERROR    - samplesheet               - check_sample_sheet_for_index_clashes     : LineNo. 610  - i7 indexes TGGATCGA and TGGATTGC are too similar to run in the same lanewith i5 indexes GTGCGATA and  are too similar to run in the same lane \n2021-09-07 07:37:58,865 - ERROR    - samplesheet               - check_sample_sheet_for_index_clashes     : LineNo. 610  - i7 indexes TGGATCGA and GTGATCGA are too similar to run in the same lanewith i5 indexes GTGCGATA and  are too similar to run in the same lane \n2021-09-07 07:37:59,425 - ERROR    - samplesheet_check          - run_check                                : LineNo. 167  - Found at least two indexes that were too similar to each other\n")
-  f.close()
+    # Parse input to JSON
+    json_input = json.loads(test_data_2)
+    json_expected_result = json.loads(expected_result_2)
 
-  # Run the function
-  body_result = json.loads(lambda_handler(json_input, ""))["body"]
+    # Create log file with error content
+    f = open('/tmp/samplesheet_check.log', "a")
+    f.write("2021-09-07 07:37:58,187 - ERROR    - samplesheet               - check_sample_sheet_for_index_clashes     : LineNo. 610  - i7 indexes ATTCAGAA and GTTGAGAA are too similar to run in the same lanewith i5 indexes AGGCTATA and  are too similar to run in the same lane \n2021-09-07 07:37:58,827 - ERROR    - samplesheet               - check_sample_sheet_for_index_clashes     : LineNo. 610  - i7 indexes TGGATCGA and TGGATTGC are too similar to run in the same lanewith i5 indexes GTGCGATA and  are too similar to run in the same lane \n2021-09-07 07:37:58,865 - ERROR    - samplesheet               - check_sample_sheet_for_index_clashes     : LineNo. 610  - i7 indexes TGGATCGA and GTGATCGA are too similar to run in the same lanewith i5 indexes GTGCGATA and  are too similar to run in the same lane \n2021-09-07 07:37:59,425 - ERROR    - samplesheet_check          - run_check                                : LineNo. 167  - Found at least two indexes that were too similar to each other\n")
+    f.close()
 
-  # Assert to check expected result
-  assert json.loads(body_result) == json_expected_result, "Unexpected Value"
+    # Run the function
+    body_result = json.loads(lambda_handler(json_input, "")["body"])
+
+    # Assert to check expected result
+    assert body_result == json_expected_result, "Unexpected Value"
+
+if __name__ == '__main__':
+    main()

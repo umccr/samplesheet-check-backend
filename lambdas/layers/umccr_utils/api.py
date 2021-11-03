@@ -14,10 +14,11 @@ def get_metadata(sample_id_var, library_id_var, auth_header):
   }
 
   # Grab api constant from environment variable
-  data_portal_metadata_api = os.environ["data_portal_metadata_api"]
+  data_portal_metadata_api = os.environ["data_portal_domain_name"]
 
+  metadata_api = "https://" + data_portal_metadata_api + "/metadata"
   # API call
-  response = requests.get(data_portal_metadata_api,
+  response = requests.get(metadata_api,
     params=parameter,
     headers=headers
   )
