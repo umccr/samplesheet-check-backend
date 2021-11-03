@@ -74,24 +74,24 @@ class SampleSheetCheckBackEndStack(cdk.Stack):
 
         # Cors Configuration
         cors_config = apigateway.CorsOptions(
-            allow_origins = [ '*' ],
+            allow_origins = [ 'https://sscheck.dev.umccr.org', 'https://sscheck.prod.umccr.org', 'https://sscheck.umccr.org' ],
             allow_methods = ["POST", "OPTIONS"]
         )
 
         # Create an apigateway to access the function
         api = apigateway.RestApi(
             self, "sample-sheet-validation-api",
-            rest_api_name = "Sample Sheet Validation",
+            rest_api_name = "sample-sheet-validation",
             default_cors_preflight_options = cors_config,
             domain_name=apigateway.DomainNameOptions(
                 domain_name="api.sscheck." + hosted_zone_name,
                 certificate=cert_use1,
                 endpoint_type=apigateway.EndpointType.EDGE
             ),
-            deploy_options={
-                "logging_level": apigateway.MethodLoggingLevel.INFO,
-                "data_trace_enabled": True
-            }
+            deploy_options=apigateway.StageOptions(
+                logging_level= apigateway.MethodLoggingLevel.INFO,
+                data_trace_enabled=True,
+            )
         )
 
         # Integrate the apigateway with the lambda function
