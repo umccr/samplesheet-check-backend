@@ -26,24 +26,17 @@ class SampleSheetCheckBackEndStack(cdk.Stack):
             parameter_name="/data_portal/backend/api_domain_name"
         ).string_value
 
-        # Query umccr_domain
-        umccr_domain = ssm.StringParameter.from_string_parameter_name(
-            self,
-            "DomainName",
-            string_parameter_name="umccr_domain",
-        ).string_value
-
-        # --- Query deployment env specific config from SSM Parameter Store
+       # --- Query deployment env specific config from SSM Parameter Store
         hosted_zone_id = ssm.StringParameter.from_string_parameter_name(
             self,
             "HostedZoneID",
-            string_parameter_name="hosted_zone_id"
+            string_parameter_name="/hosted_zone/umccr/id"
         ).string_value
 
         hosted_zone_name = ssm.StringParameter.from_string_parameter_name(
             self,
             "HostedZoneName",
-            string_parameter_name="hosted_zone_name"
+            string_parameter_name="/hosted_zone/umccr/name"
         ).string_value
         
         cert_use1_arn = ssm.StringParameter.from_string_parameter_name(
@@ -91,7 +84,7 @@ class SampleSheetCheckBackEndStack(cdk.Stack):
             rest_api_name = "Sample Sheet Validation",
             default_cors_preflight_options = cors_config,
             domain_name=apigateway.DomainNameOptions(
-                domain_name="api.sscheck." + umccr_domain,
+                domain_name="api.sscheck." + hosted_zone_name,
                 certificate=cert_use1,
                 endpoint_type=apigateway.EndpointType.EDGE
             ),
@@ -149,4 +142,3 @@ class SampleSheetCheckBackEndStack(cdk.Stack):
             string_value=route53_lambda_api.domain_name,
             tier=ssm.ParameterTier.STANDARD
         )
-

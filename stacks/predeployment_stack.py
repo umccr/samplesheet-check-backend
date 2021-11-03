@@ -17,24 +17,17 @@ class PredeploymentStack(cdk.Stack):
         props = self.node.try_get_context("props")
 
         # --- Query deployment env specific config from SSM Parameter Store
-        # Query existing UMCCR domain
-
-        umccr_domain = ssm.StringParameter.from_string_parameter_name(
-            self,
-            "DomainName",
-            string_parameter_name="umccr_domain",
-        ).string_value
 
         hosted_zone_id = ssm.StringParameter.from_string_parameter_name(
             self,
             "HostedZoneID",
-            string_parameter_name="hosted_zone_id"
+            string_parameter_name="/hosted_zone/umccr/id"
         ).string_value
 
         hosted_zone_name = ssm.StringParameter.from_string_parameter_name(
             self,
             "HostedZoneName",
-            string_parameter_name="hosted_zone_name"
+            string_parameter_name="/hosted_zone/umccr/name"
         ).string_value
 
         # Fetch existing hosted_zone
@@ -51,7 +44,7 @@ class PredeploymentStack(cdk.Stack):
             subject_alternative_names=props["alias_domain_name"][app_stage],
             hosted_zone=hosted_zone,
             region="us-east-1",
-            domain_name= "api.sscheck." + umccr_domain,
+            domain_name= "api.sscheck." + hosted_zone_name,
             validation=acm.CertificateValidation.from_dns(
                 hosted_zone=hosted_zone
             )
