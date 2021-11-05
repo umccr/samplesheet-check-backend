@@ -5,7 +5,6 @@ from aws_cdk import core as cdk
 
 # Import cdk pipeline stack
 from stacks.pipeline_stack import PipelineStack
-from stacks.predeployment_stack import PredeploymentStack
 
 # Account environment and region
 account_id = os.environ.get('CDK_DEFAULT_ACCOUNT')
@@ -53,21 +52,6 @@ PipelineStack(
     "sstage": app_stage,
     "stack":"sscheck-backend-pipeline"
   }
-)
-
-""" 
-The Predeployment stack are meant to be run once, before the pipeline stack is deployed.
-Failure to do so may result in a stack rollback on the pipeline stack.
-NOTE: Please Validate SSL Certificate from predeployment stack thorugh console. (for prod account)
-"""
-PredeploymentStack(
-    app,
-    "SSCheckBackEndPredeploymentStack",
-    stack_name="sscheck-backend-predeployment",
-    tags={
-        "stage": app_stage,
-        "stack": "sscheck-backend-predeployment"
-    }
 )
 
 app.synth()

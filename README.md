@@ -1,7 +1,7 @@
 
 # samplesheet-check-backend
 
-Project is the samplesheet check for the UMCCR bakcend infrastructure.
+Project is the samplesheet check for the UMCCR backend and infrastructure.
 
 The project contains the `app.py` that is the main function of the app and directories:
 
@@ -10,10 +10,60 @@ The project contains the `app.py` that is the main function of the app and direc
   - *layers* - dependencies for the function code to run
 - *stacks* - the stack for which the code is structured at AWS
 
-## To deploy the project
 
-Install all related packaged listed in the requirements.txt via the following command
-`python -m pip install -r requirements.txt`
+# Setting up
+
+It is recomended to create a virtual environment for the app.
+
+To do so please follow the instruction below.
+
+Change your directory to the root of this readme file.  
+
+Create a virtual environment for the app.
+```
+$ python3 -m venv .venv
+```
+
+After the init process completes and the virtualenv is created, you can use the following
+step to activate your virtualenv.
+
+```
+$ source .venv/bin/activate
+```
+
+If you are a Windows platform, you might try this:
+
+```
+% .venv\Scripts\activate.bat
+```
+Once the virtualenv is activated, you can install the required dependencies.
+
+```
+$ pip install -r requirements.txt
+```
+
+# Stack Deployment
+
+**Prerequisite**
+- A valid SSL Certificate in `us-east-1` region at ACM for all the domain name needed. See [here](app.py#L35) (`alias_domain_name` on the props variable) on what domain need to be included, determined based on which account is deployed.
+- SSM Parameter for the certificate ARN created above with the name of `/sscheck/api/ssl_certificate_arn`
+
+_Deploying the stack without prerequisite above may result in a stack rollback_
+
+There are 2 stacks in this application:
+- *data_portal_status_page* - Contains the applications stack
+- *pipeline* - Contains the pipeline for the stack to run and self update
+
+
+To deploy the application stack, you will need to deploy the `pipeline` stack. The pipeline stack will take care of the `sscheck_backend_stack` stack deployment.
+
+
+Deploy pipeline stack
+```
+$ cdk deploy SSCheckBackEndCdkPipeline --profile=${AWS_PROFILE}
+```
+
+## Deploying sscheck_backend_stack from local
 
 Before deploy the project layers **must** be compiled and zipped with the following command.
 
@@ -29,59 +79,6 @@ done
 
 After successfully build, you can deploy the cdk with the following command
 
-`cdk deploy`
-
-
-# cdk Information
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
-
-This project is set up like a standard Python project.  The initialization
-process also creates a virtualenv within this project, stored under the `.venv`
-directory.  To create the virtualenv it assumes that there is a `python3`
-(or `python` for Windows) executable in your path with access to the `venv`
-package. If for any reason the automatic creation of the virtualenv fails,
-you can create the virtualenv manually.
-
-To manually create a virtualenv on MacOS and Linux:
-
 ```
-$ python3 -m venv .venv
+$ cdk deploy SSCheckBackEndCdkPipeline/SampleSheetCheckBackEndStage/SampleSheetCheckBackEnd --profile=${AWS_PROFILE}
 ```
-
-After the init process completes and the virtualenv is created, you can use the following
-step to activate your virtualenv.
-
-```
-$ source .venv/bin/activate
-```
-
-If you are a Windows platform, you would activate the virtualenv like this:
-
-```
-% .venv\Scripts\activate.bat
-```
-
-Once the virtualenv is activated, you can install the required dependencies.
-
-```
-$ pip install -r requirements.txt
-```
-
-At this point you can now synthesize the CloudFormation template for this code.
-
-```
-$ cdk synth
-```
-
-To add additional dependencies, for example other CDK libraries, just add
-them to your `setup.py` file and rerun the `pip install -r requirements.txt`
-command.
-
-## Useful commands
-
- * `cdk ls`          list all stacks in the app
- * `cdk synth`       emits the synthesized CloudFormation template
- * `cdk deploy`      deploy this stack to your default AWS account/region
- * `cdk diff`        compare deployed stack with current state
- * `cdk docs`        open CDK documentation
-
