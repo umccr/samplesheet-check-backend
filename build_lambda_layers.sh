@@ -10,7 +10,7 @@ PKG_NAME=$(basename $(pwd -P))
 rm -rf ${PKG_DIR} && mkdir -p ${PKG_DIR}/${PKG_NAME}
 
 # Copy code needed to be included in the zip (exclude for python packages) 
-cp *.py ${PKG_DIR}/${PKG_NAME}
+cp *.py ${PKG_DIR}/${PKG_NAME}/
 
 # Install the python libraries (without dependencies) using Docker
 # Mount the current working directory as '/foo/' and start container in that directory
