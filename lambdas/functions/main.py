@@ -2,20 +2,44 @@ import email
 import json
 import tempfile
 import os
+import logging
 
 from samplesheet_check import run_check, construct_logger
 
 from umccr_utils.samplesheet import SampleSheet
 from umccr_utils.globals import LOG_DIRECTORY
 
+# Logging
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
 def lambda_handler(event, context):
+    """
+    Parameters
+    ----------
+    event : Object
+        An object of payload pass through the lambda
+    context : Object
+        [NOT_USED] a aws resource information
+
+    Return
+    ----------
+    error_message : str
+        any error message that stops the check
+
+    """
+    logger.info('Processing samplesheet check based on the following event.')
+    logger.info(json.dumps(event))
 
     try:
         origin = event["headers"]["origin"]
     except KeyError:
         origin = ""
-    
+    logger.info(f'Parsing origin header content: {origin}')
+
     auth_header = event["headers"]["Authorization"]
+    logger.info(f'Parsing auth_header header content: {auth_header}')
+
 
     body = event["body"].encode()
 
@@ -42,28 +66,38 @@ def lambda_handler(event, context):
 
     # Check if data input is correct
     if log_level in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] == False:
+
+        # Logging
+        logger.info(f"Log Level selected is not recognized. '{log_level}' is not an option.")
+
+        # Return response
         body = construct_body(check_status="FAIL", error_message="IncorrectLogLevel", log_path=log_path)
-        response = construct_response(status_code=400, body=body, origin=origin)
+        response = construct_response(status_code=200, body=body, origin=origin)
+
+        logger.info('Returning bad request response')
         return response
 
     # Place data into temporary location
+    logger.info('Creating a logger temporary file')
     temporary_data = tempfile.NamedTemporaryFile(mode='w+', delete=False)
     temporary_data.write(file_data.decode("utf-8"))
     temporary_data.seek(0)
 
     # Setup Logging
+    logger.info(f"Constructing logger file at '{log_path}' with log Level of '{log_level}'")
     construct_logger(log_path=log_path, log_level=log_level)
 
-    # Create SampleSheet 
+    # Create SampleSheet
     try:
         sample_sheet = SampleSheet(temporary_data.name)
     except:
         body = construct_body(check_status="FAIL", error_message="FileContentError", log_path=log_path)
-        response = construct_response(status_code=400, body=body, origin=origin)
+        response = construct_response(status_code=200, body=body, origin=origin)
         return response
 
     
     # Execute sample checker function
+    logger.info('Run checks on the file')
     error_message = run_check(sample_sheet, auth_header=auth_header)
 
     # Check status
@@ -76,10 +110,11 @@ def lambda_handler(event, context):
     body = construct_body(check_status=check_status, error_message=error_message, log_path=log_path)
     response = construct_response(status_code=200, body=body, origin=origin)
 
+    logger.info('Check completed, return a valid response')
     return response
 
 
-def construct_body(check_status, error_message, log_path):
+def construct_body(check_status='', error_message='', log_path=''):
     """Construct body from from information"""
 
     # Get Log Data
