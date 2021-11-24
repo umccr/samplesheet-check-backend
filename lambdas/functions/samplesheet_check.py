@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 # Logger
-from umccr_utils.logger import set_logger, set_basic_logger, get_logger
+from umccr_utils.logger import set_logger, set_basic_logger
 # Get functions
-from umccr_utils.samplesheet import get_years_from_samplesheet, get_grouped_samplesheets
+from umccr_utils.samplesheet import get_years_from_samplesheet
 # Checks
 from umccr_utils.samplesheet import check_sample_sheet_for_index_clashes,\
                                     check_metadata_correspondence, check_samplesheet_header_metadata, \
@@ -25,7 +25,7 @@ def construct_logger(log_path, log_level):
 
     Parameters
     ----------
-    logger_path : str
+    log_path : str
         The path where the logger lives
     log_level : str
         The type of logging desired
