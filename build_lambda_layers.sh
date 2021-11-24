@@ -23,7 +23,10 @@ docker run \
 # Clean the lib directory
 rm -rf ${PKG_DIR}/*.dist-info
 find ${PKG_DIR} -type d -name '__pycache__' -exec rm -rf {} +
-# Create the package zip
+
+# Remove Zip if exist and Zip new one
+rm -rf "python38-${PKG_NAME}.zip"/
 zip -r "python38-${PKG_NAME}.zip" ./${PKG_DIR}/ 1>/dev/null
+
 # Remove the inflated directory
 rm -rf ${PKG_DIR}/

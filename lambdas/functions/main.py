@@ -28,7 +28,7 @@ def construct_response(status_code, body, origin):
     """Construct response from parameter"""
     
     # Configuration of allowed origin
-    allowed_origin_list = [ 'https://sscheck.dev.umccr.org', 'https://sscheck.prod.umccr.org', 'https://sscheck.umccr.org' ]
+    allowed_origin_list = [ 'https://sscheck.umccr.org', 'https://sscheck.dev.umccr.org', 'https://sscheck.prod.umccr.org']
     
     if origin in allowed_origin_list:
         return_origin = origin
@@ -83,7 +83,7 @@ def lambda_handler(event, context):
     # Check if data input is correct
     if log_level in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] == False:
         body = construct_body(check_status="FAIL", error_message="IncorrectLogLevel")
-        response = construct_response(status_code=400, body=body)
+        response = construct_response(status_code=400, body=body, origin=origin)
         return response
 
     # Place data into temporary location
@@ -102,7 +102,7 @@ def lambda_handler(event, context):
         sample_sheet = SampleSheet(temporaryData.name)
     except:
         body = construct_body(check_status="FAIL", error_message="FileContentError", log_path=log_path)
-        response = construct_response(status_code=400, body=body)
+        response = construct_response(status_code=400, body=body, origin=origin)
         return response
 
     
