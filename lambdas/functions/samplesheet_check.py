@@ -88,24 +88,3 @@ def run_check(sample_sheet, auth_header):
     except GetMetaDataError:
         logger.error("Unable to get metadata")
         return ("Unable to get metadata")
-
-    # # Split and write individual SampleSheets, based on indexes and technology (10X)
-    # if args.check_only:
-    #     logger.info("All done.")
-    #     return
-
-    # # Sort samples based on override cycles
-    # # Also replace N indexes with ""
-    # sorted_samplesheets = get_grouped_samplesheets(sample_sheet)
-
-    # # Now that the samples have been sorted, we can write one or more custom sample sheets
-    # # (which may be the same as the original if no processing was necessary)
-    # logger.info(f"Writing {len(sorted_samplesheets)} sample sheets.")
-
-    # # Iterate through sample sheets
-    # for override_cycles, samplesheet in sorted_samplesheets.items():
-    #     override_cycles_str = override_cycles.replace(";", "_")
-    #     out_file = args.outdir / "SampleSheet.{}.csv".format(override_cycles_str)
-    #     with open(out_file, "w") as samplesheet_h:
-    #         samplesheet.write(samplesheet_h)
-

@@ -64,7 +64,7 @@ class SampleSheetCheckBackEndStack(cdk.Stack):
         sample_sheet_check_lambda = lambda_.Function(
             self,
             "SampleSheetValidationLambda",
-            function_name="sscheck-backend-lambda",
+            function_name="sscheck-backend",
             runtime=lambda_.Runtime.PYTHON_3_8,
             timeout=cdk.Duration.seconds(60),
             code=lambda_.Code.from_asset("lambdas/functions"),

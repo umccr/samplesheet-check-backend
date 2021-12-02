@@ -65,7 +65,7 @@ def lambda_handler(event, context):
     log_path = LOG_DIRECTORY["samplesheet_check"]
 
     # Check if data input is correct
-    if log_level in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] == False:
+    if log_level not in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]:
 
         # Logging
         logger.info(f"Log Level selected is not recognized. '{log_level}' is not an option.")
