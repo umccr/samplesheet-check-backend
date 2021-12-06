@@ -38,9 +38,6 @@ def lambda_handler(event, context):
     logger.info(f'Parsing origin header content: {origin}')
 
     auth_header = event["headers"]["Authorization"]
-    logger.info(f'Parsing auth_header header content: {auth_header}')
-
-
     body = event["body"].encode()
 
     # Parse contentType
