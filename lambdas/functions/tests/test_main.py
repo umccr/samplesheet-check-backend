@@ -54,7 +54,8 @@ expected_result_2 = r"""
 class MainUnitTestCase(TestCase):
 
   @mock.patch("main.SampleSheet", mock.MagicMock(return_value=""))
-  @mock.patch("main.run_check", mock.MagicMock(return_value=""))
+  @mock.patch("main.run_sample_sheet_content_check", mock.MagicMock(return_value=""))
+  @mock.patch("main.run_sample_sheet_check_with_metadata", mock.MagicMock(return_value=""))
   def test_pass_lambda_handler(self):
 
     # Parse input to JSON
@@ -69,7 +70,8 @@ class MainUnitTestCase(TestCase):
     assert body_result == json_expected_result, "Unexpected Value"
 
   @mock.patch("main.SampleSheet", mock.MagicMock(return_value=""))
-  @mock.patch("main.run_check", mock.MagicMock(return_value="Found at least two indexes that were too similar to each other"))
+  @mock.patch("main.run_sample_sheet_content_check", mock.MagicMock(return_value="Found at least two indexes that were too similar to each other"))
+  @mock.patch("main.run_sample_sheet_check_with_metadata", mock.MagicMock(return_value=""))
   def test_fail_lambda_handler(self):
 
     # Parse input to JSON
