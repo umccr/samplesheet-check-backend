@@ -711,6 +711,7 @@ def check_global_override_cycles(samplesheet):
     num_read_index_per_sample = set([len(sample.read_cycle_counts)
                                      for sample in samplesheet
                                      if not len(sample.read_cycle_counts) == 0])
+
     # Check the number of segments for each section are even the same
     if len(num_read_index_per_sample) > 1:
         logger.error("Found an error with override cycles matches")
@@ -720,6 +721,9 @@ def check_global_override_cycles(samplesheet):
                                                 if len(sample.read_cycle_counts) == num_read_index]
             logger.error("The following samples have {} read/index sections: {}".
                          format(num_read_index, ", ".join(map(str, samples_with_this_num_read_index))))
+        raise OverrideCyclesError
+    elif len(num_read_index_per_sample) == 0:
+        logger.error("Found no override cycles matches")
         raise OverrideCyclesError
     else:
         logger.info("Override cycles check 1/2 complete - "
