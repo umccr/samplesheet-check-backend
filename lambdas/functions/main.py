@@ -4,7 +4,7 @@ import tempfile
 import os
 import logging
 
-from samplesheet_check import run_check, construct_logger
+from samplesheet_check import run_sample_sheet_content_check, run_sample_sheet_check_with_metadata, construct_logger
 
 from umccr_utils.samplesheet import SampleSheet
 from umccr_utils.globals import LOG_DIRECTORY
@@ -92,19 +92,26 @@ def lambda_handler(event, context):
         response = construct_response(status_code=200, body=body, origin=origin)
         return response
 
-    
-    # Execute sample checker function
-    logger.info('Run checks on the file')
-    error_message = run_check(sample_sheet, auth_header=auth_header)
+    # Run some checks
+    try:
+        # Check just from samplesheet data
+        error = run_sample_sheet_content_check(sample_sheet)
+        if error:
+            raise ValueError(error)
 
-    # Check status
-    if error_message:
-        check_status="FAIL"
-    else:
-        check_status="PASS"
+        # Check sample_sheet with metadata
+        error = run_sample_sheet_check_with_metadata(sample_sheet, auth_header=auth_header)
+        if error:
+            raise ValueError(error)
+
+    except Exception as e:
+        body = construct_body(check_status="FAIL", error_message=str(e), log_path=log_path)
+        response = construct_response(status_code=200, body=body, origin=origin)
+        return response
+
 
     # Construct Response
-    body = construct_body(check_status=check_status, error_message=error_message, log_path=log_path)
+    body = construct_body(check_status='PASS', log_path=log_path)
     response = construct_response(status_code=200, body=body, origin=origin)
 
     logger.info('Check completed, return a valid response')
