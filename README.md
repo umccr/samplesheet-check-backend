@@ -83,6 +83,19 @@ After successfully build, you can deploy the cdk with the following command
 $ cdk deploy SSCheckBackEndCdkPipeline/SampleSheetCheckBackEndStage/SampleSheetCheckBackEnd --profile=${AWS_PROFILE}
 ```
 
+## Syncing Google Sheet to Lab Metadata
+
+This is done every 24 hours (overnight), however if one needs to update the lab metadata on demand, the following code may be of assistance.  
+
+Ensure you're logged in to the right AWS account and then run the following code: 
+
+```bash
+aws lambda invoke \
+  --function-name data-portal-api-prod-labmetadata_scheduled_update_processor \
+  --output json \
+  output.json
+```
+
 ## Testing locally
 
 This tutorial goes through running the samplesheet check functions locally.
@@ -260,3 +273,4 @@ curl \
   --form "file=@${SAMPLESHEET_FILE}" \
   "${API_URL}"
 ```
+
