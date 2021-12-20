@@ -163,7 +163,7 @@ class Sample:
                                             library_id_var=library_id_var,
                                             auth_header=auth_header)
         except:
-            logger.error("Fail to fetch metadata api for library id '{}' and sample id '{}'"
+            logger.error("Fail to fetch metadata api for library id '{}' and sample id '{}' "
                          "in columns {} and {} respectively".format(library_id_var, sample_id_var,
                                                                     library_id_column_var, sample_id_column_var))
             raise ApiCallError
@@ -708,11 +708,13 @@ def check_global_override_cycles(samplesheet):
                     read_cycles_sum += int(re_match[-1])
             sample.read_cycle_counts.append(read_cycles_sum)
     # Now we ensure all samples have the same read_cycle counts
-    num_read_index_per_sample = set([len(sample.read_cycle_counts)
-                                     for sample in samplesheet
-                                     if not len(sample.read_cycle_counts) == 0])
+    num_read_index_per_sample = list(set([len(sample.read_cycle_counts)
+                                          for sample in samplesheet
+                                          if not len(sample.read_cycle_counts) == 0]))
 
-    # Check the number of segments for each section are even the same
+    # Check the number of segments for each section are the same
+    # An example where this issue would arise is if one sample is set for a single indexed flowcell
+    # And another sample is set for a dual indexed flowcell and are put on the same run
     if len(num_read_index_per_sample) > 1:
         logger.error("Found an error with override cycles matches")
         for num_read_index in num_read_index_per_sample:
@@ -726,25 +728,26 @@ def check_global_override_cycles(samplesheet):
         logger.error("Found no override cycles matches")
         raise OverrideCyclesError
     else:
-        logger.info("Override cycles check 1/2 complete - "
+        logger.info("Global override cycles check 1/2 complete - "
                     "All samples have the correct number of override cycles sections - {}".
                     format(list(num_read_index_per_sample)[0]))
 
     # For each segment - check that the counts are the same
     section_cycle_counts = []
     for read_index in range(list(num_read_index_per_sample)[0]):
-        num_cycles_in_read_per_sample = set([sample.read_cycle_counts[read_index]
-                                             for sample in samplesheet
-                                             if not len(sample.read_cycle_counts) == 0])
+        num_cycles_in_read_per_sample = list(set([sample.read_cycle_counts[read_index]
+                                                  for sample in samplesheet
+                                                  if not len(sample.read_cycle_counts) == 0]))
         if len(num_cycles_in_read_per_sample) > 1:
             logger.error("Found an error with override cycles matches for read/index section {}".format(read_index))
             for num_cycles in num_cycles_in_read_per_sample:
                 samples_with_this_cycle_count_in_this_read_index_section = \
                     [sample.sample_id
                      for sample in samplesheet
-                     if len(sample.read_cycle_counts[read_index]) == num_cycles]
-                logger.error("The following samples have this this read count for this read index section: {}".
+                     if sample.read_cycle_counts[read_index] == num_cycles]
+                logger.error("The following samples indicate {} cycles for section {}: {}".
                              format(num_cycles,
+                                    read_index + 1,
                                     ", ".join(map(str, samples_with_this_cycle_count_in_this_read_index_section))))
             raise OverrideCyclesError
         else:
