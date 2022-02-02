@@ -74,7 +74,7 @@ def run_sample_sheet_content_check(sample_sheet):
 
 
 
-def run_sample_sheet_check_with_metadata(sample_sheet, auth_header):
+def run_sample_sheet_check_with_metadata(sample_sheet):
     """
     Run check for the samplesheet.
 
@@ -94,10 +94,10 @@ def run_sample_sheet_check_with_metadata(sample_sheet, auth_header):
 
     logger.info("Check Samplesheet against metadata")
 
-    # Run through checks with metadata iintegrate
+    # Run through checks with metadata integrate
     try:
-        set_meta_data_by_library_id(sample_sheet, auth_header=auth_header)
-        check_metadata_correspondence(sample_sheet,auth_header=auth_header)
+        set_meta_data_by_library_id(sample_sheet)
+        check_metadata_correspondence(sample_sheet)
         check_global_override_cycles(sample_sheet)
         check_internal_override_cycles(sample_sheet)
 

@@ -13,3 +13,4 @@ __pycache__
 .cdk.staging
 cdk.out
 cfnnag_output
+/sample_file/

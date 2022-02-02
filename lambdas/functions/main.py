@@ -13,6 +13,7 @@ from umccr_utils.globals import LOG_DIRECTORY
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+
 def lambda_handler(event, context):
     """
     Parameters
@@ -45,9 +46,9 @@ def lambda_handler(event, context):
         content_type = event["headers"]['Content-Type']
     except KeyError:
         content_type = event["headers"]['content-type']
-    ct = "Content-Type: "+content_type+"\n"
+    ct = "Content-Type: " + content_type + "\n"
 
-    msg = email.message_from_bytes(ct.encode()+body)
+    msg = email.message_from_bytes(ct.encode() + body)
 
     multipart_content = {}
     # retrieving form-data
@@ -63,7 +64,6 @@ def lambda_handler(event, context):
 
     # Check if data input is correct
     if log_level not in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]:
-
         # Logging
         logger.info(f"Log Level selected is not recognized. '{log_level}' is not an option.")
 
@@ -100,7 +100,8 @@ def lambda_handler(event, context):
             raise ValueError(error)
 
         # Check sample_sheet with metadata
-        error = run_sample_sheet_check_with_metadata(sample_sheet, auth_header=auth_header)
+        sample_sheet.set_metadata_df_from_api(auth_header)
+        error = run_sample_sheet_check_with_metadata(sample_sheet)
         if error:
             raise ValueError(error)
 
@@ -108,7 +109,6 @@ def lambda_handler(event, context):
         body = construct_body(check_status="FAIL", error_message=str(e), log_path=log_path)
         response = construct_response(status_code=200, body=body, origin=origin)
         return response
-
 
     # Construct Response
     body = construct_body(check_status='PASS', log_path=log_path)
