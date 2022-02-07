@@ -159,9 +159,8 @@ class Sample:
         sample_id_var = self.sample_id
 
         # Query for specific dataframe value
-        query_str_pd = "{} == \"{}\" & {} == \"{}\"".format("library_id", library_id_var,
-                                                            "sample_id", sample_id_var)
-        library_row = metadata_df.query(query_str_pd)
+        library_row = metadata_df.loc[
+            (metadata_df['library_id'] == library_id_var) & (metadata_df["sample_id"] == sample_id_var)]
 
         # Check result_df exist
         number_of_rows = len(library_row)
@@ -180,6 +179,7 @@ class Sample:
 
         # Set the library df
         self.library_series = library_row.squeeze()
+
 
 class SampleSheet:
     """
@@ -608,6 +608,7 @@ def check_sample_sheet_for_index_clashes(samplesheet):
     lanes = samplesheet.get_lanes()
 
     for lane in lanes:
+        print('----------each lane----------')
         for s_i, sample in enumerate(samplesheet.samples):
             # Ensures samples are in the same lane
             if not sample.lane == lane:

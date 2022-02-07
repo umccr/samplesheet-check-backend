@@ -12,7 +12,7 @@ rm -rf ${PKG_DIR} && mkdir -p ${PKG_DIR}
 # Install the python libraries (without dependencies) using Docker
 # Mount the current working directory as '/foo/' and start container in that directory
 docker run \
-  --platform=linux/x86-64
+  --platform=linux/x86-64 \
   --rm \
   -v $(pwd):/foo \
   -w /foo \
