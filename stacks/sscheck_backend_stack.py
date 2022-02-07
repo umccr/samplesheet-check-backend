@@ -60,6 +60,14 @@ class SampleSheetCheckBackEndStack(cdk.Stack):
             description="A samplecheck library layer for python 3.8"
         )
 
+        runtime_library_layer = lambda_.LayerVersion(
+            self,
+            "SSCheckLibraryRuntimeLambdaLayer",
+            code=lambda_.Code.from_asset("lambdas/layers/runtime/python38-runtime.zip"),
+            compatible_runtimes=[lambda_.Runtime.PYTHON_3_8],
+            description="Python library needed for SSCheck in python 3.8"
+        )
+
         # Create a lambda function along with the layered crated above
         sample_sheet_check_lambda = lambda_.Function(
             self,
@@ -69,7 +77,7 @@ class SampleSheetCheckBackEndStack(cdk.Stack):
             timeout=cdk.Duration.seconds(60),
             code=lambda_.Code.from_asset("lambdas/functions"),
             handler="main.lambda_handler",
-            layers=[sample_check_layer],
+            layers=[sample_check_layer, runtime_library_layer],
             environment={"data_portal_domain_name": data_portal_domain_name}
         )
 

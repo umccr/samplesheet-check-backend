@@ -164,14 +164,15 @@ class Sample:
         library_row = metadata_df.query(query_str_pd)
 
         # Check result_df exist
-        if library_row.shape[0] == 0:
+        number_of_rows = len(library_row)
+        if number_of_rows == 0:
             logger.error("Got no rows back for library id '{}' and sample id '{}'"
                          "in columns {} and {} respectively".format(library_id_var, sample_id_var,
                                                                     library_id_column_var, sample_id_column_var))
             raise LibraryNotFoundError
 
         # Check library_row is just one row
-        if not library_row.shape[0] == 1:
+        if not number_of_rows == 1:
             logger.error("Got multiple rows back for library id '{}' and sample id '{}'"
                          "in columns {} and {} respectively".format(library_id_var, sample_id_var,
                                                                     library_id_column_var, sample_id_column_var))
@@ -179,7 +180,6 @@ class Sample:
 
         # Set the library df
         self.library_series = library_row.squeeze()
-
 
 class SampleSheet:
     """
@@ -228,7 +228,12 @@ class SampleSheet:
         if self.samplesheet_path is not None:
             self.read()
 
-    def set_metadata_df_from_api(self, auth_header):
+    def set_metadata_df_from_api(self, auth_header, loop=None):
+        from datetime import datetime
+
+        now = datetime.now()
+        current_time = now.strftime("%H:%M:%S")
+        print("Current Time =", current_time)
 
         library_id_array = []
 
@@ -258,13 +263,16 @@ class SampleSheet:
                                                                              value_list=library_id_array)
 
         except ValueError:
-            logger.error("Fail to fetch metadata api for library id '{}' and sample id '{}'"
-                         "in columns {} and {} respectively".format(library_id_var, sample_id_var,
-                                                                    library_id_column_var, sample_id_column_var))
+            logger.error("Fail to fetch metadata api for library id in the samplesheet")
             raise ApiCallError
 
         # Convert api result to panda dataframe
         self.metadata_df = pd.json_normalize(metadata_response)
+        print(self.metadata_df)
+        now = datetime.now()
+        current_time = now.strftime("%H:%M:%S")
+        print("Current Time =", current_time)
+        print('API END')
 
     def read(self):
         """
