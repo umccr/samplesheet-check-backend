@@ -598,7 +598,6 @@ def check_sample_sheet_for_index_clashes(samplesheet):
     lanes = samplesheet.get_lanes()
 
     for lane in lanes:
-        print('----------each lane----------')
         for s_i, sample in enumerate(samplesheet.samples):
             # Ensures samples are in the same lane
             if not sample.lane == lane:

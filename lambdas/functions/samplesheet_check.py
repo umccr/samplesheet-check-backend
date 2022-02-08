@@ -34,7 +34,7 @@ def construct_logger(log_path, log_level):
     set_logger(log_path=log_path, log_level=log_level)
 
 
-def run_sample_sheet_content_check(sample_sheet):
+async def run_sample_sheet_content_check(sample_sheet):
     """
     Run check for the samplesheet.
 
@@ -60,7 +60,9 @@ def run_sample_sheet_content_check(sample_sheet):
         logger.info("Samplesheet contains IDs from {} years: {}".format(len(years), ', '.join(map(str, list(years)))))
 
     try:
+        print('----------check_samplesheet_header_metadata----------')
         check_samplesheet_header_metadata(sample_sheet)
+        print('----------check_sample_sheet_for_index_clashes----------')
         check_sample_sheet_for_index_clashes(sample_sheet)
     except SampleSheetHeaderError:
         logger.error("Samplesheet header did not have the appropriate attributes")
@@ -73,7 +75,7 @@ def run_sample_sheet_content_check(sample_sheet):
         return f"Unknown samplesheet error. Error: {e}"
 
 
-async def run_sample_sheet_check_with_metadata(sample_sheet):
+def run_sample_sheet_check_with_metadata(sample_sheet):
     """
     Run check for the samplesheet.
 
@@ -95,9 +97,13 @@ async def run_sample_sheet_check_with_metadata(sample_sheet):
 
     # Run through checks with metadata integrate
     try:
+        print('----------set_meta_data_by_library_id----------')
         set_meta_data_by_library_id(sample_sheet)
+        print('----------check_metadata_correspondence----------')
         check_metadata_correspondence(sample_sheet)
+        print('----------check_global_override_cycles----------')
         check_global_override_cycles(sample_sheet)
+        print('----------check_internal_override_cycles----------')
         check_internal_override_cycles(sample_sheet)
 
     except SampleNameFormatError:

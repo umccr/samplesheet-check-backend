@@ -23,7 +23,7 @@ def lambda_handler(event, context):
     event : Object
         An object of payload pass through the lambda
     context : Object
-        [NOT_USED] a aws resource information
+        [NOT_USED] an aws resource information
 
     Return
     ----------
@@ -127,6 +127,7 @@ def lambda_handler(event, context):
     logger.info('Check completed, return a valid response')
     return response
 
+
 async def metadata_call_and_samplesheet_content_check(sample_sheet, auth_header):
     loop = asyncio.get_running_loop()
 
@@ -136,6 +137,7 @@ async def metadata_call_and_samplesheet_content_check(sample_sheet, auth_header)
 
     )
     return error
+
 
 def construct_body(check_status='', error_message='', log_path=''):
     """Construct body from from information"""
