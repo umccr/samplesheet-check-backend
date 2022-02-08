@@ -9,6 +9,7 @@ from aws_cdk import (
     aws_certificatemanager as acm
 )
 
+
 class SampleSheetCheckBackEndStack(cdk.Stack):
 
     def __init__(self, scope: cdk.Construct, construct_id: str, **kwargs) -> None:
@@ -23,10 +24,10 @@ class SampleSheetCheckBackEndStack(cdk.Stack):
 
         # Load SSM parameter
         data_portal_domain_name = ssm.StringParameter.from_string_parameter_attributes(self, "urlValue",
-            parameter_name="/data_portal/backend/api_domain_name"
-        ).string_value
+                                                                                       parameter_name="/data_portal/backend/api_domain_name"
+                                                                                       ).string_value
 
-       # --- Query deployment env specific config from SSM Parameter Store
+        # --- Query deployment env specific config from SSM Parameter Store
         hosted_zone_id = ssm.StringParameter.from_string_parameter_name(
             self,
             "HostedZoneID",
@@ -38,7 +39,7 @@ class SampleSheetCheckBackEndStack(cdk.Stack):
             "HostedZoneName",
             string_parameter_name="/hosted_zone/umccr/name"
         ).string_value
-        
+
         cert_use1_arn = ssm.StringParameter.from_string_parameter_name(
             self,
             "SSLCertUSE1ARN",
@@ -74,24 +75,25 @@ class SampleSheetCheckBackEndStack(cdk.Stack):
             "SampleSheetValidationLambda",
             function_name="sscheck-backend",
             runtime=lambda_.Runtime.PYTHON_3_8,
-            timeout=cdk.Duration.seconds(60),
+            timeout=cdk.Duration.seconds(40),
             code=lambda_.Code.from_asset("lambdas/functions"),
             handler="main.lambda_handler",
             layers=[sample_check_layer, runtime_library_layer],
+            memory_size=256,
             environment={"data_portal_domain_name": data_portal_domain_name}
         )
 
         # Cors Configuration
         cors_config = apigateway.CorsOptions(
-            allow_origins = [ '*' ],
-            allow_methods = ["POST", "OPTIONS"]
+            allow_origins=['*'],
+            allow_methods=["POST", "OPTIONS"]
         )
 
         # Create an apigateway to access the function
         api = apigateway.RestApi(
             self, "sample-sheet-validation-api",
-            rest_api_name = "Sample Sheet Validation",
-            default_cors_preflight_options = cors_config,
+            rest_api_name="Sample Sheet Validation",
+            default_cors_preflight_options=cors_config,
             domain_name=apigateway.DomainNameOptions(
                 domain_name="api.sscheck." + hosted_zone_name,
                 certificate=cert_use1,
@@ -105,7 +107,7 @@ class SampleSheetCheckBackEndStack(cdk.Stack):
 
         # Integrate the apigateway with the lambda function
         sampleSheetValidationIntegration = apigateway.LambdaIntegration(sample_sheet_check_lambda)
-        
+
         # Pool Config
         cog_user_pool = cognito.UserPool.from_user_pool_id(
             self,
@@ -115,16 +117,17 @@ class SampleSheetCheckBackEndStack(cdk.Stack):
 
         # Authorizer config
         auth_config = apigateway.CognitoUserPoolsAuthorizer(self, "cognitoAuthorizer",
-            cognito_user_pools=[cog_user_pool],
-            authorizer_name = "cognitoAuthorizer",
-            identity_source = apigateway.IdentitySource.header('Authorization')
-        )
+                                                            cognito_user_pools=[cog_user_pool],
+                                                            authorizer_name="cognitoAuthorizer",
+                                                            identity_source=apigateway.IdentitySource.header(
+                                                                'Authorization')
+                                                            )
 
         # add method of the function for the api gateway
         api.root.add_method("POST", sampleSheetValidationIntegration,
-            authorization_type=apigateway.AuthorizationType.COGNITO,
-            authorizer=auth_config
-        )
+                            authorization_type=apigateway.AuthorizationType.COGNITO,
+                            authorizer=auth_config
+                            )
 
         hosted_zone = route53.HostedZone.from_hosted_zone_attributes(
             self,
@@ -142,12 +145,12 @@ class SampleSheetCheckBackEndStack(cdk.Stack):
             zone=hosted_zone,
             record_name="api.sscheck"
         )
-        
+
         # Write SSM parameter for REST api URL
         ssm.StringParameter(self, "samplesheetCheckLambdaApi",
-            allowed_pattern=".*",
-            description="The Lambda Rest-api Samplesheet Check",
-            parameter_name="/sscheck/lambda-api-domain",
-            string_value=route53_lambda_api.domain_name,
-            tier=ssm.ParameterTier.STANDARD
-        )
+                            allowed_pattern=".*",
+                            description="The Lambda Rest-api Samplesheet Check",
+                            parameter_name="/sscheck/lambda-api-domain",
+                            string_value=route53_lambda_api.domain_name,
+                            tier=ssm.ParameterTier.STANDARD
+                            )
