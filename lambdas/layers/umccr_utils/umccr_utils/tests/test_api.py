@@ -47,8 +47,6 @@ def mocked_invalid_get_requests(*args, **kwargs):
 class ApiUnitTestCase(TestCase):
     """Start UnitTest"""
 
-    def setUp(self):
-        os.environ["data_portal_domain_name"] = "api.data.dev.umccr.org"
 
     ### Testing valid parameter
     @mock.patch('umccr_utils.api.aiohttp.ClientSession.get', side_effect=mocked_valid_get_requests)

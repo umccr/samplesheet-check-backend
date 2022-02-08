@@ -22,7 +22,7 @@ class SamplesheetUnitTestCase(TestCase):
     @mock.patch("umccr_utils.samplesheet.Sample.set_metadata_row_for_sample", mock.MagicMock(result_value=None))
     @mock.patch("umccr_utils.samplesheet.Sample.set_override_cycles",  mock.MagicMock(result_value="set_override_cycles function executed"))
     def test_no_error_set_meta_data_by_library_id(self):
-        result_func = set_meta_data_by_library_id(samplesheet=self.sample_sheet,auth_header="JWT-TOKEN")
+        result_func = set_meta_data_by_library_id(samplesheet=self.sample_sheet)
         assert result_func== None, "No Error is expected"
         
     ## Mock for LibraryNotFoundError
@@ -30,21 +30,21 @@ class SamplesheetUnitTestCase(TestCase):
     @mock.patch("umccr_utils.samplesheet.Sample.set_override_cycles",  mock.MagicMock(result_value="set_override_cycles function executed"))
     def test_LibraryNotFoundError_set_meta_data_by_library_id(self):
         with self.assertRaises(GetMetaDataError):
-            set_meta_data_by_library_id(samplesheet=self.sample_sheet,auth_header="JWT-TOKEN")
+            set_meta_data_by_library_id(samplesheet=self.sample_sheet)
 
     ## Mock for MultipleLibraryError
     @mock.patch("umccr_utils.samplesheet.Sample.set_metadata_row_for_sample", mock.MagicMock(side_effect=MultipleLibraryError))
     @mock.patch("umccr_utils.samplesheet.Sample.set_override_cycles",  mock.MagicMock(result_value="set_override_cycles function executed"))
     def test_MultipleLibraryError_set_meta_data_by_library_id(self):
         with self.assertRaises(GetMetaDataError):
-            set_meta_data_by_library_id(samplesheet=self.sample_sheet,auth_header="JWT-TOKEN")
+            set_meta_data_by_library_id(samplesheet=self.sample_sheet)
 
     ## Mock for ApiCallError
     @mock.patch("umccr_utils.samplesheet.Sample.set_metadata_row_for_sample", mock.MagicMock(side_effect=ApiCallError))
     @mock.patch("umccr_utils.samplesheet.Sample.set_override_cycles",  mock.MagicMock(result_value="set_override_cycles function executed"))
     def test_ApiCallError_set_meta_data_by_library_id(self):
         with self.assertRaises(GetMetaDataError):
-            set_meta_data_by_library_id(samplesheet=self.sample_sheet,auth_header="JWT-TOKEN")
+            set_meta_data_by_library_id(samplesheet=self.sample_sheet)
 
     # No error expected
     def test_check_samplesheet_header_metadata(self):

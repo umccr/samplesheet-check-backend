@@ -228,12 +228,7 @@ class SampleSheet:
         if self.samplesheet_path is not None:
             self.read()
 
-    def set_metadata_df_from_api(self, auth_header, loop=None):
-        from datetime import datetime
-
-        now = datetime.now()
-        current_time = now.strftime("%H:%M:%S")
-        print("Current Time =", current_time)
+    async def set_metadata_df_from_api(self, auth_header, loop=None, session=None):
 
         library_id_array = []
 
@@ -257,10 +252,10 @@ class SampleSheet:
 
         try:
 
-            metadata_response = get_metadata_record_from_array_of_field_name(auth_header=auth_header,
-                                                                             path='metadata',
-                                                                             field_name='library_id',
-                                                                             value_list=library_id_array)
+            metadata_response = await get_metadata_record_from_array_of_field_name(auth_header=auth_header,
+                                                                                   path='metadata',
+                                                                                   field_name='library_id',
+                                                                                   value_list=library_id_array)
 
         except ValueError:
             logger.error("Fail to fetch metadata api for library id in the samplesheet")
@@ -268,11 +263,6 @@ class SampleSheet:
 
         # Convert api result to panda dataframe
         self.metadata_df = pd.json_normalize(metadata_response)
-        print(self.metadata_df)
-        now = datetime.now()
-        current_time = now.strftime("%H:%M:%S")
-        print("Current Time =", current_time)
-        print('API END')
 
     def read(self):
         """

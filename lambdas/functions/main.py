@@ -3,6 +3,8 @@ import json
 import tempfile
 import os
 import logging
+import asyncio
+import aiohttp
 
 from samplesheet_check import run_sample_sheet_content_check, run_sample_sheet_check_with_metadata, construct_logger
 
@@ -94,13 +96,21 @@ def lambda_handler(event, context):
 
     # Run some checks
     try:
+
+        # Make async calls between get_metadata and samplesheet function
+        loop = asyncio.new_event_loop()
+
+        error = loop.run_until_complete(
+            metadata_call_and_samplesheet_content_check(sample_sheet=sample_sheet, auth_header=auth_header))
+        loop.close()
+
+        # sample_sheet.set_metadata_df_from_api(auth_header)
         # Check just from samplesheet data
-        error = run_sample_sheet_content_check(sample_sheet)
+        # error = run_sample_sheet_content_check(sample_sheet)
         if error:
             raise ValueError(error)
 
         # Check sample_sheet with metadata
-        sample_sheet.set_metadata_df_from_api(auth_header)
         error = run_sample_sheet_check_with_metadata(sample_sheet)
         if error:
             raise ValueError(error)
@@ -117,6 +127,15 @@ def lambda_handler(event, context):
     logger.info('Check completed, return a valid response')
     return response
 
+async def metadata_call_and_samplesheet_content_check(sample_sheet, auth_header):
+    loop = asyncio.get_running_loop()
+
+    _, error = await asyncio.gather(
+        sample_sheet.set_metadata_df_from_api(auth_header, loop),
+        run_sample_sheet_content_check(sample_sheet)
+
+    )
+    return error
 
 def construct_body(check_status='', error_message='', log_path=''):
     """Construct body from from information"""

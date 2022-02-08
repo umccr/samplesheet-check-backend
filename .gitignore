@@ -8,6 +8,7 @@ __pycache__
 *.zip
 *.vscode
 .idea
+*.DS_Store
 
 # CDK asset staging directory
 .cdk.staging
