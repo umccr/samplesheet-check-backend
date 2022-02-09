@@ -3,6 +3,8 @@ import json
 import tempfile
 import os
 import logging
+import asyncio
+import aiohttp
 
 from samplesheet_check import run_sample_sheet_content_check, run_sample_sheet_check_with_metadata, construct_logger
 
@@ -13,6 +15,7 @@ from umccr_utils.globals import LOG_DIRECTORY
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+
 def lambda_handler(event, context):
     """
     Parameters
@@ -20,7 +23,7 @@ def lambda_handler(event, context):
     event : Object
         An object of payload pass through the lambda
     context : Object
-        [NOT_USED] a aws resource information
+        [NOT_USED] an aws resource information
 
     Return
     ----------
@@ -45,9 +48,9 @@ def lambda_handler(event, context):
         content_type = event["headers"]['Content-Type']
     except KeyError:
         content_type = event["headers"]['content-type']
-    ct = "Content-Type: "+content_type+"\n"
+    ct = "Content-Type: " + content_type + "\n"
 
-    msg = email.message_from_bytes(ct.encode()+body)
+    msg = email.message_from_bytes(ct.encode() + body)
 
     multipart_content = {}
     # retrieving form-data
@@ -63,7 +66,6 @@ def lambda_handler(event, context):
 
     # Check if data input is correct
     if log_level not in ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]:
-
         # Logging
         logger.info(f"Log Level selected is not recognized. '{log_level}' is not an option.")
 
@@ -94,13 +96,22 @@ def lambda_handler(event, context):
 
     # Run some checks
     try:
+
+        # Make async calls between get_metadata and samplesheet function
+        loop = asyncio.new_event_loop()
+
+        error = loop.run_until_complete(
+            metadata_call_and_samplesheet_content_check(sample_sheet=sample_sheet, auth_header=auth_header))
+        loop.close()
+
+        # sample_sheet.set_metadata_df_from_api(auth_header)
         # Check just from samplesheet data
-        error = run_sample_sheet_content_check(sample_sheet)
+        # error = run_sample_sheet_content_check(sample_sheet)
         if error:
             raise ValueError(error)
 
         # Check sample_sheet with metadata
-        error = run_sample_sheet_check_with_metadata(sample_sheet, auth_header=auth_header)
+        error = run_sample_sheet_check_with_metadata(sample_sheet)
         if error:
             raise ValueError(error)
 
@@ -109,13 +120,23 @@ def lambda_handler(event, context):
         response = construct_response(status_code=200, body=body, origin=origin)
         return response
 
-
     # Construct Response
     body = construct_body(check_status='PASS', log_path=log_path)
     response = construct_response(status_code=200, body=body, origin=origin)
 
     logger.info('Check completed, return a valid response')
     return response
+
+
+async def metadata_call_and_samplesheet_content_check(sample_sheet, auth_header):
+    loop = asyncio.get_running_loop()
+
+    _, error = await asyncio.gather(
+        sample_sheet.set_metadata_df_from_api(auth_header, loop),
+        run_sample_sheet_content_check(sample_sheet)
+
+    )
+    return error
 
 
 def construct_body(check_status='', error_message='', log_path=''):

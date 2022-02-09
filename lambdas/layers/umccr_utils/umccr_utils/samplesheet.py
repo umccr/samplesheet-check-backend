@@ -19,14 +19,15 @@ from umccr_utils.errors import SampleSheetFormatError, SampleDuplicateError, Sam
     ApiCallError
 
 # Regexes
-from umccr_utils.globals import SAMPLE_REGEX_OBJS, SAMPLESHEET_REGEX_OBJS, OVERRIDE_CYCLES_OBJS, MIN_INDEX_HAMMING_DISTANCE
+from umccr_utils.globals import SAMPLE_REGEX_OBJS, SAMPLESHEET_REGEX_OBJS, OVERRIDE_CYCLES_OBJS, \
+    MIN_INDEX_HAMMING_DISTANCE
 
 # Column name validations
 from umccr_utils.globals import METADATA_COLUMN_NAMES, METADATA_VALIDATION_COLUMN_NAMES, \
-                                REQUIRED_SAMPLE_SHEET_DATA_COLUMN_NAMES, VALID_SAMPLE_SHEET_DATA_COLUMN_NAMES
+    REQUIRED_SAMPLE_SHEET_DATA_COLUMN_NAMES, VALID_SAMPLE_SHEET_DATA_COLUMN_NAMES
 
 # Calling API functions
-from umccr_utils.api import get_metadata
+from umccr_utils.api import get_metadata_record_from_array_of_field_name
 
 logger = get_logger()
 
@@ -50,10 +51,10 @@ class Sample:
         # Corresponds to the Sample_ID column in the sample sheet
         # And Sample_ID (SampleSheet) in the metadata excel sheet
         self.unique_id = sample_id
-        self.index = index                      # The i7 index
-        self.index2 = index2                    # The i5 index - could be None if a single indexed flowcell
-        self.lane = lane                        # The lane of the sample
-        self.project = project                  # This may be useful at some point
+        self.index = index  # The i7 index
+        self.index2 = index2  # The i5 index - could be None if a single indexed flowcell
+        self.lane = lane  # The lane of the sample
+        self.project = project  # This may be useful at some point
 
         # Initialise read cycles and override_cycles
         self.read_cycle_counts = []
@@ -147,9 +148,9 @@ class Sample:
         """
         self.override_cycles = self.library_series["override_cycles"]
 
-    def set_metadata_row_for_sample(self, auth_header):
+    def set_metadata_row_for_sample(self, metadata_df):
         """
-        :param auth_header: The JWT to fetch metadata
+        :param metadata_df: metadata data frame
         :return:
         """
         library_id_column_var = METADATA_COLUMN_NAMES["library_id"]
@@ -157,34 +158,20 @@ class Sample:
         library_id_var = self.library_id
         sample_id_var = self.sample_id
 
-        # Fetch metadata result via the API
-        try:
-            metadata_result = get_metadata(sample_id_var=sample_id_var,
-                                            library_id_var=library_id_var,
-                                            auth_header=auth_header)
-        except:
-            logger.error("Fail to fetch metadata api for library id '{}' and sample id '{}'"
-                         "in columns {} and {} respectively".format(library_id_var, sample_id_var,
-                                                                    library_id_column_var, sample_id_column_var))
-            raise ApiCallError
-
-        # Convert api result to panda dataframe
-        result_df = pd.json_normalize(metadata_result)
+        # Query for specific dataframe value
+        library_row = metadata_df.loc[
+            (metadata_df['library_id'] == library_id_var) & (metadata_df["sample_id"] == sample_id_var)]
 
         # Check result_df exist
-        if result_df.shape[0] == 0:
+        number_of_rows = len(library_row)
+        if number_of_rows == 0:
             logger.error("Got no rows back for library id '{}' and sample id '{}'"
                          "in columns {} and {} respectively".format(library_id_var, sample_id_var,
                                                                     library_id_column_var, sample_id_column_var))
             raise LibraryNotFoundError
 
-        # Query for specific dataframe value
-        query_str_pd = "{} == \"{}\" & {} == \"{}\"".format("library_id", library_id_var,
-                                                         "sample_id", sample_id_var)
-        library_row = result_df.query(query_str_pd)
-
         # Check library_row is just one row
-        if not library_row.shape[0] == 1:
+        if not number_of_rows == 1:
             logger.error("Got multiple rows back for library id '{}' and sample id '{}'"
                          "in columns {} and {} respectively".format(library_id_var, sample_id_var,
                                                                     library_id_column_var, sample_id_column_var))
@@ -207,6 +194,8 @@ class SampleSheet:
         self.data = data
         self.samples = samples
 
+        self.metadata_df = pd.DataFrame()
+
         # Ensure that header, reads, settings are all None or all Not None
         if not (self.header is None and self.reads is None and self.settings is None):
             if not (self.header is not None and self.reads is not None and self.settings is not None):
@@ -225,7 +214,8 @@ class SampleSheet:
             logger.error("Specify only the samplesheet path OR header, reads, settings")
             raise NotImplementedError
         # Check we haven't double defined the data settings
-        elif not (bool(self.samplesheet_path is not None) ^ bool(self.samples is not None) ^ bool(self.data is not None)):
+        elif not (
+                bool(self.samplesheet_path is not None) ^ bool(self.samples is not None) ^ bool(self.data is not None)):
             """
             Only one of samplesheet_path and samples can be specified
             Can we confirm this is legit
@@ -237,6 +227,42 @@ class SampleSheet:
         # If there's a samplesheet path, we need to read it
         if self.samplesheet_path is not None:
             self.read()
+
+    async def set_metadata_df_from_api(self, auth_header, loop=None, session=None):
+
+        library_id_array = []
+
+        for sample in self:
+
+            library_id_array.append(sample.library_id)
+
+            # check that the primary library for the topup exists
+            if SAMPLE_REGEX_OBJS["topup"].search(sample.library_id) is not None:
+                logger.info("{} is a top up sample. Investigating the previous sample".format(sample.unique_id))
+                orig_unique_id = SAMPLE_REGEX_OBJS["topup"].sub('', sample.unique_id)
+
+                unique_id_regex_obj = SAMPLE_REGEX_OBJS["unique_id"].match(orig_unique_id)
+
+                # Sample ID is the first group and the library ID is the second group
+                topup_sample_id = unique_id_regex_obj.group(1)
+                topup_library_id = unique_id_regex_obj.group(2)
+
+                # Appending these original sample/library id to the search query
+                library_id_array.append(topup_library_id)
+
+        try:
+
+            metadata_response = await get_metadata_record_from_array_of_field_name(auth_header=auth_header,
+                                                                                   path='metadata',
+                                                                                   field_name='library_id',
+                                                                                   value_list=library_id_array)
+
+        except ValueError:
+            logger.error("Fail to fetch metadata api for library id in the samplesheet")
+            raise ApiCallError
+
+        # Convert api result to panda dataframe
+        self.metadata_df = pd.json_normalize(metadata_response)
 
     def read(self):
         """
@@ -335,18 +361,18 @@ class SampleSheet:
 
         for row_index, sample_row in self.data.iterrows():
             self.samples.append(Sample(lane=sample_row["Lane"]
-                                            if "Lane" in sample_row.keys()
-                                            # Set default to 1 so we can still compare indexes across
-                                            # entire samplesheet
-                                            else 1,
+            if "Lane" in sample_row.keys()
+            # Set default to 1 so we can still compare indexes across
+            # entire samplesheet
+            else 1,
                                        sample_id=sample_row["Sample_ID"],
                                        index=sample_row["index"],
                                        index2=sample_row["index2"]
-                                              if "index2" in sample_row.keys()
-                                              else None,
+                                       if "index2" in sample_row.keys()
+                                       else None,
                                        project=sample_row["Sample_Project"]
-                                               if "Sample_Project" in sample_row.keys()
-                                               else None
+                                       if "Sample_Project" in sample_row.keys()
+                                       else None
                                        )
                                 )
 
@@ -457,7 +483,7 @@ def get_years_from_samplesheet(samplesheet):
     return years
 
 
-def set_meta_data_by_library_id(samplesheet, auth_header):
+def set_meta_data_by_library_id(samplesheet):
     """
     Get the library ID from the metadata tracking sheet
     :param samplesheet:
@@ -465,10 +491,11 @@ def set_meta_data_by_library_id(samplesheet, auth_header):
     """
     has_error = False
     error_samples = []
+    metadata_df = samplesheet.metadata_df
 
     for sample in samplesheet:
         try:
-            sample.set_metadata_row_for_sample(auth_header=auth_header)
+            sample.set_metadata_row_for_sample(metadata_df=metadata_df)
         except LibraryNotFoundError:
             logger.error("Error trying to find library id in tracking sheet for sample {}".format(sample.sample_id))
             error_samples.append(sample.sample_id)
@@ -511,7 +538,7 @@ def check_samplesheet_header_metadata(samplesheet):
     return
 
 
-def check_metadata_correspondence(samplesheet, auth_header):
+def check_metadata_correspondence(samplesheet):
     """
     Checking sample sheet data against metadata df
     :param samplesheet:
@@ -542,7 +569,7 @@ def check_metadata_correspondence(samplesheet, auth_header):
                                      lane=None,
                                      project=None)
                 # Try get metadata for sample row
-                orig_sample.set_metadata_row_for_sample(auth_header=auth_header)
+                orig_sample.set_metadata_row_for_sample(metadata_df=samplesheet.metadata_df)
             except LibraryNotFoundError:
                 logger.error("Could not find library of original sample")
                 has_error = True
@@ -551,7 +578,7 @@ def check_metadata_correspondence(samplesheet, auth_header):
                 has_error = True
             except ApiCallError:
                 logger.error("API call fails")
-                has_error=True
+                has_error = True
 
     if not has_error:
         return
@@ -623,11 +650,12 @@ def check_sample_sheet_for_index_clashes(samplesheet):
                                                                                                   sample_2.index2))
                     if sample_has_i7_error:
                         logger.error("i7 indexes {} and {} are too similar to run in the same lane"
-                                     "with i5 indexes {} and {} are too similar to run in the same lane ".format(sample.index,
-                                                                                                                 sample_2.index,
-                                                                                                                 sample.index2,
-                                                                                                                 sample_2.index2)
-                                     )
+                                     "with i5 indexes {} and {} are too similar to run in the same lane ".format(
+                            sample.index,
+                            sample_2.index,
+                            sample.index2,
+                            sample_2.index2)
+                        )
                         has_error = True
 
     if not has_error:
@@ -798,7 +826,7 @@ def get_grouped_samplesheets(samplesheet):
     grouped_samplesheets = collections.defaultdict()
 
     override_cycles_list = set([sample.override_cycles
-                               for sample in samplesheet])
+                                for sample in samplesheet])
 
     for override_cycles in override_cycles_list:
         samples_unique_ids_subset = [sample.unique_id
@@ -809,14 +837,14 @@ def get_grouped_samplesheets(samplesheet):
         override_cycles_samplesheet = deepcopy(samplesheet)
 
         # Truncate data
-        override_cycles_samplesheet.data = override_cycles_samplesheet.data.\
+        override_cycles_samplesheet.data = override_cycles_samplesheet.data. \
             query("Sample_ID in @samples_unique_ids_subset")
 
         # Ensure we haven't just completely truncated everything
         if override_cycles_samplesheet.data.shape[0] == 0:
             logger.error("Here are the list of sample ids "
                          "that were meant to have the Override cycles setting \"{}\": {}".format(
-                           override_cycles, ", ".join(map(str, samples_unique_ids_subset))))
+                override_cycles, ", ".join(map(str, samples_unique_ids_subset))))
             logger.error("We accidentally filtered our override cycles samplesheet to contain no samples")
             raise ValueError
 

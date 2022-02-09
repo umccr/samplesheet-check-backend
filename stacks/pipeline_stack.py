@@ -91,10 +91,10 @@ class PipelineStack(cdk.Stack):
                     # Lambda testing
                     "cd lambdas",
                     "for dir in $(find layers/ -maxdepth 1 -mindepth 1 -type d); do pip install -r ${dir}/requirements.txt; done",
-                    "cd layers",
+                    "cd layers/umccr_utils",
                     "python -m unittest umccr_utils/tests/test_api.py",
                     "python -m unittest umccr_utils/tests/test_samplesheet.py",
-                    "cd ../functions",
+                    "cd ../../functions",
                     "python -m unittest tests/*",
                     "cd ../.."
                 ],

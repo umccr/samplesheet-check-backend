@@ -8,8 +8,11 @@ __pycache__
 *.zip
 *.vscode
 .idea
+*.DS_Store
 
 # CDK asset staging directory
 .cdk.staging
 cdk.out
 cfnnag_output
+/sample_file/
+/lambdas/layers/umccr_utils/python/
