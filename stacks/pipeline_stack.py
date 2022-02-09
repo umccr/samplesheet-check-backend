@@ -11,6 +11,7 @@ from aws_cdk import (
 )
 from stacks.sscheck_backend_stack import SampleSheetCheckBackEndStack
 
+
 class SampleSheetCheckBackEndStage(cdk.Stage):
     def __init__(self, scope: cdk.Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
@@ -28,6 +29,7 @@ class SampleSheetCheckBackEndStage(cdk.Stage):
             }
         )
 
+
 # Class for the CDK pipeline stack
 class PipelineStack(cdk.Stack):
 
@@ -40,17 +42,17 @@ class PipelineStack(cdk.Stack):
 
         # Load SSM parameter for GitHub repo (Created via Console)
         codestar_arn = ssm.StringParameter.from_string_parameter_attributes(self, "codestarArn",
-            parameter_name="codestar_github_arn"
-        ).string_value
+                                                                            parameter_name="codestar_github_arn"
+                                                                            ).string_value
 
         # Create S3 bucket for artifacts
         pipeline_artifact_bucket = s3.Bucket(
-            self, 
-            "sscheck-backend-artifact-bucket", 
-            bucket_name = props["pipeline_artifact_bucket_name"][app_stage],
-            auto_delete_objects = True,
-            removal_policy = cdk.RemovalPolicy.DESTROY,
-            block_public_access= s3.BlockPublicAccess.BLOCK_ALL
+            self,
+            "sscheck-backend-artifact-bucket",
+            bucket_name=props["pipeline_artifact_bucket_name"][app_stage],
+            auto_delete_objects=True,
+            removal_policy=cdk.RemovalPolicy.DESTROY,
+            block_public_access=s3.BlockPublicAccess.BLOCK_ALL
         )
 
         # Create a pipeline for status page
@@ -90,7 +92,8 @@ class PipelineStack(cdk.Stack):
 
                     # Lambda testing
                     "cd lambdas",
-                    "for dir in $(find layers/ -maxdepth 1 -mindepth 1 -type d); do pip install -r ${dir}/requirements.txt; done",
+                    "pip install -r layers/runtime/requirements.txt",
+                    "pip install layers/umccr_utils/",
                     "cd layers/umccr_utils",
                     "python -m unittest umccr_utils/tests/test_api.py",
                     "python -m unittest umccr_utils/tests/test_samplesheet.py",
