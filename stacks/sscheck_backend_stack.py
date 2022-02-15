@@ -79,7 +79,7 @@ class SampleSheetCheckBackEndStack(cdk.Stack):
             code=lambda_.Code.from_asset("lambdas/functions"),
             handler="main.lambda_handler",
             layers=[sample_check_layer, runtime_library_layer],
-            memory_size=256,
+            memory_size=2048,
             environment={"data_portal_domain_name": data_portal_domain_name}
         )
 
