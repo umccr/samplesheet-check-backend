@@ -15,6 +15,9 @@ async def get_metadata_record_from_array_of_field_name(auth_header: str, path: s
         'Authorization': auth_header
     }
 
+    # Removing any duplicates for api efficiency
+    value_list = list(set(value_list))
+    
     # Define query string
     query_param_string = f'&{field_name}='.join(value_list)
     query_param_string = f'?{field_name}=' + query_param_string  # Appending name at the beginning

@@ -257,7 +257,7 @@ class SampleSheet:
                                                                                    field_name='library_id',
                                                                                    value_list=library_id_array)
 
-        except ValueError:
+        except Exception as e:
             logger.error("Fail to fetch metadata api for library id in the samplesheet")
             raise ApiCallError
 
