@@ -235,7 +235,22 @@ sample_sheet = SampleSheet(sample_sheet_path)
 run_sample_sheet_content_check(sample_sheet)
 
 # Check 2
-run_sample_sheet_check_with_metadata(sample_sheet, auth_header)
+async def set_and_check_metadata(sample_sheet, auth_header):
+    # Set metadata
+    loop = asyncio.get_running_loop()
+    error = await asyncio.gather(
+        sample_sheet.set_metadata_df_from_api(auth_header, loop),
+    )
+    
+    # run metadta check
+    run_sample_sheet_check_with_metadata(sample_sheet)
+    
+loop = asyncio.new_event_loop()
+set_and_check_metadata(sample_sheet, auth_header):
+loop.close()
+
+    
+
 
 EOF
 
