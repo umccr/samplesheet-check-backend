@@ -777,8 +777,11 @@ def check_global_override_cycles(samplesheet):
                     [sample.sample_id
                      for sample in samplesheet
                      if sample.read_cycle_counts[read_index] == num_cycles]
-                logger.error("The following samples have this this read count for this read index section: {}\nSamples: {}".
+                logger.error("The following samples have this this read count for this read index section: {}\n"
+                             "CycleCount: {}\n"
+                             "Samples: {}".
                              format(read_index+1,
+                                    num_cycles,
                                     ", ".join(map(str, samples_with_this_cycle_count_in_this_read_index_section))))
             raise OverrideCyclesError
         else:
