@@ -93,6 +93,11 @@ class Sample:
 
         unique_id_regex_obj = SAMPLE_REGEX_OBJS["unique_id"].match(self.unique_id)
 
+        # Check unique id regex match is not None
+        if unique_id_regex_obj is None:
+            logger.error(f"Could not split sample and library id from {self.unique_id}")
+            raise SampleNameFormatError
+
         # Sample ID is the first group and the library ID is the second group
         self.sample_id = unique_id_regex_obj.group(1)
         self.library_id = unique_id_regex_obj.group(2)
@@ -555,7 +560,8 @@ def check_metadata_correspondence(samplesheet):
 
         # check presence of subject ID
         if sample.library_series["subject_id"] == '':
-            logger.warning(f"No subject ID for {sample.sample_id}")
+            logger.error(f"No subject ID for {sample.sample_id}")
+            raise SampleNotFoundError
 
         # check that the primary library for the topup exists
         if SAMPLE_REGEX_OBJS["topup"].search(sample.library_id) is not None:
@@ -765,14 +771,14 @@ def check_global_override_cycles(samplesheet):
                                              for sample in samplesheet
                                              if not len(sample.read_cycle_counts) == 0])
         if len(num_cycles_in_read_per_sample) > 1:
-            logger.error("Found an error with override cycles matches for read/index section {}".format(read_index))
+            logger.error("Found an error with override cycles matches for read/index section {}".format(read_index+1))
             for num_cycles in num_cycles_in_read_per_sample:
                 samples_with_this_cycle_count_in_this_read_index_section = \
                     [sample.sample_id
                      for sample in samplesheet
-                     if len(sample.read_cycle_counts[read_index]) == num_cycles]
-                logger.error("The following samples have this this read count for this read index section: {}".
-                             format(num_cycles,
+                     if sample.read_cycle_counts[read_index] == num_cycles]
+                logger.error("The following samples have this this read count for this read index section: {}\nSamples: {}".
+                             format(read_index+1,
                                     ", ".join(map(str, samples_with_this_cycle_count_in_this_read_index_section))))
             raise OverrideCyclesError
         else:

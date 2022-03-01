@@ -13,6 +13,7 @@ from umccr_utils.samplesheet import set_meta_data_by_library_id
 # Errors
 from umccr_utils.errors import GetMetaDataError, SampleSheetHeaderError, SimilarIndexError, \
     SampleNameFormatError, MetaDataError, OverrideCyclesError
+import pandas as pd
 
 # Logger
 logger = set_basic_logger()
@@ -105,6 +106,12 @@ def run_sample_sheet_check_with_metadata(sample_sheet):
         check_global_override_cycles(sample_sheet)
         print('----------check_internal_override_cycles----------')
         check_internal_override_cycles(sample_sheet)
+        logger.info("Printing the value_counts of the samplesheet (by assay, type and override cycles)")
+        sample_sheet_df = pd.DataFrame([{"assay": sample.library_series['assay'],
+                                         "type": sample.library_series['type'],
+                                         "override_cycles": sample.library_series['override_cycles']}
+                                         for sample in sample_sheet])
+        logger.info(f"Value Counts:\n{sample_sheet_df.value_counts()}")
 
     except SampleNameFormatError:
         logger.error("Sample name was not appropriate.")
