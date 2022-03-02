@@ -3,6 +3,7 @@ import os
 from aiohttp import ClientSession
 import requests
 from typing import List
+from urllib.parse import urlparse
 
 # Grab api constant from environment variable
 DATA_PORTAL_DOMAIN_NAME = os.environ["data_portal_domain_name"]
@@ -41,7 +42,10 @@ async def get_metadata_record_from_array_of_field_name(auth_header: str, path: s
 
             query_param_string = query_param_string + f'&rowsPerPage=1000'  # Add Rows per page (1000 is the maximum rows)
 
-            url = "https://" + DATA_PORTAL_DOMAIN_NAME + "/" + path.strip('/') + query_param_string
+            if not urlparse(DATA_PORTAL_DOMAIN_NAME).scheme == "":
+                url = DATA_PORTAL_DOMAIN_NAME + "/" + path.strip('/') + query_param_string
+            else:
+                url = "https://" + DATA_PORTAL_DOMAIN_NAME + "/" + path.strip('/') + query_param_string
 
             # Make sure no data is left, looping data until the end
             while url is not None:
