@@ -632,9 +632,9 @@ def check_sample_sheet_for_index_clashes(samplesheet):
                     compare_two_indexes(sample.index, sample_2.index)
                 except SimilarIndexError:
                     # Not a failure - we might have different i5 indexes for the sample
-                    logger.warning("i7 indexes {} and {} are too similar to run in the same lane".format(sample.index,
+                    logger.debug("i7 indexes {} and {} are too similar to run in the same lane".format(sample.index,
                                                                                                          sample_2.index))
-                    logger.warning("This may be okay if i5 indexes are different enough")
+                    logger.debug("This may be okay if i5 indexes are different enough")
                     sample_has_i7_error = True
 
                 # We may not have an i5 index - continue on to next sample if so
@@ -651,9 +651,9 @@ def check_sample_sheet_for_index_clashes(samplesheet):
                 try:
                     compare_two_indexes(sample.index2, sample_2.index2)
                 except SimilarIndexError:
-                    logger.warning("i5 indexes {} and {} are too similar to run in the same lane."
-                                   "This might be okay if i7 indexes are different enough".format(sample.index2,
-                                                                                                  sample_2.index2))
+                    logger.debug("i5 indexes {} and {} are too similar to run in the same lane."
+                                 "This might be okay if i7 indexes are different enough".format(sample.index2,
+                                                                                                sample_2.index2))
                     if sample_has_i7_error:
                         logger.error("i7 indexes {} and {} are too similar to run in the same lane"
                                      "with i5 indexes {} and {} are too similar to run in the same lane ".format(
