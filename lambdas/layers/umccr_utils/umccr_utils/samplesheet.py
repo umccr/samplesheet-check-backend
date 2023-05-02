@@ -38,10 +38,11 @@ class Sample:
     """
 
     # Initialise attributes
-    def __init__(self, sample_id, index, index2, lane, project):
+    def __init__(self, sample_id, sample_name, index, index2, lane, project):
         """
         Initialise the sample object
         :param sample_id:
+        :param sample_name:
         :param index:
         :param index2:
         :param lane:
@@ -55,12 +56,13 @@ class Sample:
         self.index2 = index2  # The i5 index - could be None if a single indexed flowcell
         self.lane = lane  # The lane of the sample
         self.project = project  # This may be useful at some point
+        self.sample_name = sample_name
 
         # Initialise read cycles and override_cycles
         self.read_cycle_counts = []
         self.override_cycles = None
 
-        # Initialise library and sample names
+        # Initialise library
         self.sample_id = None
         self.library_id = None
 
@@ -78,6 +80,7 @@ class Sample:
         self.check_unique_library_id_format()
         self.check_library_id_format()
         self.check_sample_id_format()
+        self.check_sample_name_format()
 
     def __str__(self):
         return self.unique_id
@@ -101,6 +104,15 @@ class Sample:
         # Sample ID is the first group and the library ID is the second group
         self.sample_id = unique_id_regex_obj.group(1)
         self.library_id = unique_id_regex_obj.group(2)
+
+    def check_sample_name_format(self):
+        """
+        Ensure that the sample name is not null
+        :return:
+        """
+        if self.sample_name is None or self.sample_name == "":
+            logger.error("Sample ID {} did not corresponding Sample_Name".format(self.sample_id))
+            raise SampleNameFormatError
 
     def check_sample_id_format(self):
         """
@@ -358,28 +370,29 @@ class SampleSheet:
         """
         # Ensure this function has not been called inappropriately
         if self.data is None:
-            logger.error("Tried to convert data attribute to samples object when data wasnt defined")
+            logger.error("Tried to convert data attribute to samples object when data wasn't defined")
             raise ValueError
 
         if self.samples is None:
             self.samples = []
 
         for row_index, sample_row in self.data.iterrows():
-            self.samples.append(Sample(lane=sample_row["Lane"]
-            if "Lane" in sample_row.keys()
-            # Set default to 1 so we can still compare indexes across
-            # entire samplesheet
-            else 1,
-                                       sample_id=sample_row["Sample_ID"],
-                                       index=sample_row["index"],
-                                       index2=sample_row["index2"]
-                                       if "index2" in sample_row.keys()
-                                       else None,
-                                       project=sample_row["Sample_Project"]
-                                       if "Sample_Project" in sample_row.keys()
-                                       else None
-                                       )
-                                )
+            # Set default lane to 1, so we can still compare indexes across
+            lane = sample_row["Lane"] if "Lane" in sample_row.keys() else 1
+
+            index2 = sample_row["index2"] if "index2" in sample_row.keys() else None
+            project = sample_row["Sample_Project"] if "Sample_Project" in sample_row.keys() else None
+
+            self.samples.append(
+                Sample(
+                    lane=lane,
+                    sample_name=sample_row["Sample_Name"],
+                    sample_id=sample_row["Sample_ID"],
+                    index=sample_row["index"],
+                    index2=index2,
+                    project=project
+                )
+            )
 
     def add_sample(self, new_sample_to_add):
         """
@@ -569,11 +582,14 @@ def check_metadata_correspondence(samplesheet):
             orig_unique_id = SAMPLE_REGEX_OBJS["topup"].sub('', sample.unique_id)
             try:
                 # Recreate the original sample object
-                orig_sample = Sample(sample_id=orig_unique_id,
-                                     index=None,
-                                     index2=None,
-                                     lane=None,
-                                     project=None)
+                orig_sample = Sample(
+                    sample_id=orig_unique_id,
+                    sample_name=sample.sample_name,
+                    index=None,
+                    index2=None,
+                    lane=None,
+                    project=None
+                )
                 # Try get metadata for sample row
                 orig_sample.set_metadata_row_for_sample(metadata_df=samplesheet.metadata_df)
             except LibraryNotFoundError:
@@ -633,7 +649,7 @@ def check_sample_sheet_for_index_clashes(samplesheet):
                 except SimilarIndexError:
                     # Not a failure - we might have different i5 indexes for the sample
                     logger.debug("i7 indexes {} and {} are too similar to run in the same lane".format(sample.index,
-                                                                                                         sample_2.index))
+                                                                                                       sample_2.index))
                     logger.debug("This may be okay if i5 indexes are different enough")
                     sample_has_i7_error = True
 
@@ -771,7 +787,7 @@ def check_global_override_cycles(samplesheet):
                                              for sample in samplesheet
                                              if not len(sample.read_cycle_counts) == 0])
         if len(num_cycles_in_read_per_sample) > 1:
-            logger.error("Found an error with override cycles matches for read/index section {}".format(read_index+1))
+            logger.error("Found an error with override cycles matches for read/index section {}".format(read_index + 1))
             for num_cycles in num_cycles_in_read_per_sample:
                 samples_with_this_cycle_count_in_this_read_index_section = \
                     [sample.sample_id
@@ -780,7 +796,7 @@ def check_global_override_cycles(samplesheet):
                 logger.error("The following samples have this this read count for this read index section: {}\n"
                              "CycleCount: {}\n"
                              "Samples: {}".
-                             format(read_index+1,
+                             format(read_index + 1,
                                     num_cycles,
                                     ", ".join(map(str, samples_with_this_cycle_count_in_this_read_index_section))))
             raise OverrideCyclesError
