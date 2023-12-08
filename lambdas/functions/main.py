@@ -10,6 +10,7 @@ from samplesheet_check import run_sample_sheet_content_check, run_sample_sheet_c
 
 from umccr_utils.samplesheet import SampleSheet
 from umccr_utils.globals import LOG_DIRECTORY
+from v2_samplesheet_builder import v1_to_v2_samplesheet
 
 # Logging
 logger = logging.getLogger()
@@ -120,8 +121,11 @@ def lambda_handler(event, context):
         response = construct_response(status_code=200, body=body, origin=origin)
         return response
 
+    # Check v2 samplesheet
+    v2_samplesheet_str = v1_to_v2_samplesheet(sample_sheet)
+
     # Construct Response
-    body = construct_body(check_status='PASS', log_path=log_path)
+    body = construct_body(check_status='PASS', log_path=log_path, v2_samplesheet_str=v2_samplesheet_str)
     response = construct_response(status_code=200, body=body, origin=origin)
 
     logger.info('Check completed, return a valid response')
@@ -139,8 +143,23 @@ async def metadata_call_and_samplesheet_content_check(sample_sheet, auth_header)
     return error
 
 
-def construct_body(check_status='', error_message='', log_path=''):
-    """Construct body from from information"""
+def construct_body(check_status='', error_message='', log_path='', v2_samplesheet_str=''):
+    """
+    Parameters
+    ----------
+    check_status : One of 'PASS' or 'FAIL'
+
+    error_message : The error message to return
+
+    log_path: The directory containing the logs
+
+    v2_samplesheet_str : The string representation of the v2 samplesheet
+
+    Return
+    ----------
+    error_message : str
+        any error message that stops the check
+    """
 
     # Get Log Data
     with open(log_path, 'r') as log_file:
@@ -151,7 +170,8 @@ def construct_body(check_status='', error_message='', log_path=''):
     body = {
         "check_status": check_status,
         "error_message": error_message,
-        "log_file": log_text
+        "log_file": log_text,
+        "v2_samplesheet_str": v2_samplesheet_str
     }
     return json.dumps(body)
 

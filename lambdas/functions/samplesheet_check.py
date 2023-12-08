@@ -103,7 +103,7 @@ def run_sample_sheet_check_with_metadata(sample_sheet):
         print('----------check_metadata_correspondence----------')
         check_metadata_correspondence(sample_sheet)
         print('----------check_global_override_cycles----------')
-        check_global_override_cycles(sample_sheet)
+        _ = check_global_override_cycles(sample_sheet)
         print('----------check_internal_override_cycles----------')
         check_internal_override_cycles(sample_sheet)
         logger.info("Printing the value_counts of the samplesheet (by assay, type and override cycles)")
