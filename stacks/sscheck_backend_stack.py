@@ -1,5 +1,7 @@
+from constructs import Construct
 from aws_cdk import (
-    core as cdk,
+    Duration,
+    Stack,
     aws_apigateway as apigateway,
     aws_lambda as lambda_,
     aws_cognito as cognito,
@@ -10,9 +12,9 @@ from aws_cdk import (
 )
 
 
-class SampleSheetCheckBackEndStack(cdk.Stack):
+class SampleSheetCheckBackEndStack(Stack):
 
-    def __init__(self, scope: cdk.Construct, construct_id: str, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         # --- Cognito parameters are from data portal terraform stack
@@ -75,7 +77,7 @@ class SampleSheetCheckBackEndStack(cdk.Stack):
             "SampleSheetValidationLambda",
             function_name="sscheck-backend",
             runtime=lambda_.Runtime.PYTHON_3_8,
-            timeout=cdk.Duration.seconds(40),
+            timeout=Duration.seconds(40),
             code=lambda_.Code.from_asset("lambdas/functions"),
             handler="main.lambda_handler",
             layers=[sample_check_layer, runtime_library_layer],

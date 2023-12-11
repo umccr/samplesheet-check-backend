@@ -1,8 +1,10 @@
-# importing modules
+from constructs import Construct
 from aws_cdk import (
+    Stage,
+    Stack,
+    RemovalPolicy,
     aws_ssm as ssm,
     pipelines,
-    core as cdk,
     aws_s3 as s3,
     aws_codepipeline as codepipeline,
     aws_sns as sns,
@@ -12,8 +14,8 @@ from aws_cdk import (
 from stacks.sscheck_backend_stack import SampleSheetCheckBackEndStack
 
 
-class SampleSheetCheckBackEndStage(cdk.Stage):
-    def __init__(self, scope: cdk.Construct, construct_id: str, **kwargs) -> None:
+class SampleSheetCheckBackEndStage(Stage):
+    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         app_stage = self.node.try_get_context("app_stage")
@@ -31,9 +33,9 @@ class SampleSheetCheckBackEndStage(cdk.Stage):
 
 
 # Class for the CDK pipeline stack
-class PipelineStack(cdk.Stack):
+class PipelineStack(Stack):
 
-    def __init__(self, scope: cdk.Construct, construct_id: str, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         # Defining app stage
@@ -51,8 +53,7 @@ class PipelineStack(cdk.Stack):
             "sscheck-backend-artifact-bucket",
             bucket_name=props["pipeline_artifact_bucket_name"][app_stage],
             auto_delete_objects=True,
-            removal_policy=cdk.RemovalPolicy.DESTROY,
-            block_public_access=s3.BlockPublicAccess.BLOCK_ALL
+            removal_policy=RemovalPolicy.DESTROY
         )
 
         # Create a pipeline for status page
