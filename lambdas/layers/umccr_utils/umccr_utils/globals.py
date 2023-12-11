@@ -11,6 +11,9 @@ GLOBALS used in projects
 """
 
 import re
+from typing import List
+
+from v2_samplesheet_maker.enums import FastqCompressionFormat
 
 METADATA_COLUMN_NAMES = {
   "library_id": 'LibraryID',  # the internal ID for the library
@@ -161,3 +164,100 @@ MIN_INDEX_HAMMING_DISTANCE = 3
 LOG_DIRECTORY = {
     "samplesheet_check" : "/tmp/samplesheet_check.log"
 }
+
+
+ADAPTERS_BY_KIT = {
+    "truseq": {
+        "adapter_read_1": "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA",
+        "adapter_read_2": "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT"
+    },
+    "nextera": {
+        "adapter_read_1": "CTGTCTCTTATACACATCT",
+        "adapter_read_2": ""  # null is default and keeps current samplesheet, "" removes value
+    },
+    "pcr_free_tagmentation": {
+        "adapter_read_1": "CTGTCTCTTATACACATCTCCGAGCCCACGAGAC+ATGTGTATAAGAGACA",
+        "adapter_read_2": "CTGTCTCTTATACACATCTCGCAGGGGATAGTCAGATGACGCTGCCGACGA+ATGTGTATAAGAGACA"
+    },
+    "agilent_sureselect_qxt": {
+        "adapter_read_1": "CTGTCTCTTGATCACA",
+        "adapter_read_2": ""  # null is default and keeps current samplesheet, "" removes value
+    },
+}
+
+
+V2_SAMPLESHEET_BCLCONVERT_ADAPTER_SETTINGS_BY_ASSAY_TYPE = {
+    # All 10X sample types
+    "10X:.*": {
+        "create_fastq_for_index_reads": True,
+        "minimum_trimmed_read_length": 8,
+        "mask_short_reads": 8,
+        # Remove adapters as suggested here:
+        # https://kb.10xgenomics.com/hc/en-us/articles/4424193781517-What-adapters-should-I-use-in-my-IEM-sample-sheet-
+        "adapter_read_1": "",
+        "adapter_read_2": ""
+    },
+    # TSO Assays
+    ".*:ctTSO|TSODNA|TSORNA": {
+        "adapter_read_1": ADAPTERS_BY_KIT["truseq"]["adapter_read_1"],
+        "adapter_read_2": ADAPTERS_BY_KIT["truseq"]["adapter_read_2"],
+        "adapter_behavior": "trim",
+        "minimum_trimmed_read_length": 35,
+        "mask_short_reads": 35,
+    },
+    # PCR Free Tagementation Assays (rare)
+    ".*:PCR-Free-Tagmentation": {
+        "adapter_read_1": ADAPTERS_BY_KIT["pcr_free_tagmentation"]["adapter_read_1"],
+        "adapter_read_2": ADAPTERS_BY_KIT["pcr_free_tagmentation"]["adapter_read_2"],
+    },
+    # Minimum Adapater Overlap for all samples set to 3
+    ".*:.*": {
+        "minimum_adapter_overlap": 3
+    }
+}
+
+# Adapter settins can be set per sample
+V2_ADAPTER_SETTINGS = [
+    "barcode_mismatches_index1",
+    "barcode_mismatches_index2",
+    "adapter_read_1",
+    "adapter_read_2",
+    "adapter_behavior",
+    "adapter_stringency"
+]
+
+# Data specific rows for v2
+V2_DATA_ROWS = [
+    "sample_id",
+    "lane",
+    "index",
+    "index2",
+    "sample_project",
+    "sample_name"
+]
+
+# Non-adapter settings that can be data settings
+V2_SAMPLESHEET_DATA_SETTINGS = [
+    "override_cycles"
+]
+
+# Samplesheet settings in the BCLConvert_Settings section
+V2_SAMPLESHEET_GLOBAL_SETTINGS = {
+    "minimum_trimmed_read_length": int,
+    "minimum_adapter_overlap": int,
+    "mask_short_reads": int,
+    "override_cycles": int,
+    "trim_umi": bool,
+    "create_fastq_for_index_reads": bool,
+    "no_lane_splitting": bool,
+    "fastq_compression_format": FastqCompressionFormat,
+    "find_adapters_with_indels": bool,
+    "independent_index_collision_check": list,
+}
+
+# Add adapter settings to samplesheet settings
+V2_SAMPLESHEET_DATA_SETTINGS.extend(V2_ADAPTER_SETTINGS)
+
+# Add settings
+V2_DATA_ROWS.extend(V2_SAMPLESHEET_DATA_SETTINGS)
+

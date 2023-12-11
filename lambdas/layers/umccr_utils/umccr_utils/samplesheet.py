@@ -6,6 +6,8 @@ Sample-sheet functions to be used in the checker script
 
 # Standards
 from copy import deepcopy
+from typing import List
+
 import pandas as pd
 import collections
 # Extras
@@ -111,7 +113,7 @@ class Sample:
         :return:
         """
         if self.sample_name is None or self.sample_name == "":
-            logger.error("Sample ID {} did not corresponding Sample_Name".format(self.sample_id))
+            logger.error("Sample ID {} did not have corresponding Sample_Name".format(self.sample_id))
             raise SampleNameFormatError
 
     def check_sample_id_format(self):
@@ -729,7 +731,7 @@ def check_internal_override_cycles(samplesheet):
                            f"but sample '{sample.sample_id}' has a second index '{sample.index2}'")
 
 
-def check_global_override_cycles(samplesheet):
+def check_global_override_cycles(samplesheet) -> List:
     """
     Check that the override cycles exists,
     matches the reads entered in the samplesheet
@@ -738,6 +740,9 @@ def check_global_override_cycles(samplesheet):
     :return:
     """
     for sample in samplesheet:
+        # We've already initialised this attribute
+        if not len(sample.read_cycle_counts) == 0:
+            continue
         # for Y151;I8N2;I8N2;Y151 to ["Y151", "I8N2", "I8N2", "Y151"]
         if sample.override_cycles == "":
             logger.warning("Could not find override cycles for sample \"{}\"".format(sample.unique_id))
@@ -806,6 +811,8 @@ def check_global_override_cycles(samplesheet):
         logger.info("Override cycles check 2/2 complete - "
                     "All samples have the identical number of cycles per section - \"{}\"".
                     format(", ".join(map(str, section_cycle_counts))))
+
+    return section_cycle_counts
 
 
 def compare_two_indexes(first_index, second_index):

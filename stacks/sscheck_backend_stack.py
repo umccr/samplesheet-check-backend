@@ -57,16 +57,16 @@ class SampleSheetCheckBackEndStack(cdk.Stack):
             self,
             "SamplecheckLambdaLayer",
             code=lambda_.Code.from_asset("lambdas/layers/umccr_utils/python38-umccr_utils.zip"),
-            compatible_runtimes=[lambda_.Runtime.PYTHON_3_8],
-            description="A samplecheck library layer for python 3.8"
+            compatible_runtimes=[lambda_.Runtime.PYTHON_3_10],
+            description="A samplecheck library layer for python 3.10"
         )
 
         runtime_library_layer = lambda_.LayerVersion(
             self,
             "SSCheckLibraryRuntimeLambdaLayer",
             code=lambda_.Code.from_asset("lambdas/layers/runtime/python38-runtime.zip"),
-            compatible_runtimes=[lambda_.Runtime.PYTHON_3_8],
-            description="Python library needed for SSCheck in python 3.8"
+            compatible_runtimes=[lambda_.Runtime.PYTHON_3_10],
+            description="Python library needed for SSCheck in python 3.10"
         )
 
         # Create a lambda function along with the layered crated above
@@ -74,7 +74,7 @@ class SampleSheetCheckBackEndStack(cdk.Stack):
             self,
             "SampleSheetValidationLambda",
             function_name="sscheck-backend",
-            runtime=lambda_.Runtime.PYTHON_3_8,
+            runtime=lambda_.Runtime.PYTHON_3_10,
             timeout=cdk.Duration.seconds(40),
             code=lambda_.Code.from_asset("lambdas/functions"),
             handler="main.lambda_handler",

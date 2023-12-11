@@ -22,7 +22,7 @@ props = {
         "dev": "sscheck-backend",
         "prod": "sscheck-backend"
     },
-    "pipeline_artifact_bucket_name" :{
+    "pipeline_artifact_bucket_name": {
         "dev": "sscheck-backend-artifact-dev",
         "prod": "sscheck-backend-artifact-prod"
     },
@@ -31,7 +31,7 @@ props = {
         "dev": "dev",
         "prod": "main"
     },
-    "alias_domain_name":{
+    "alias_domain_name": {
         "dev": ["api.sscheck.dev.umccr.org"],
         "prod": ["api.sscheck.umccr.org", "api.sscheck.prod.umccr.org"]
     }
@@ -47,10 +47,10 @@ app = cdk.App(
 PipelineStack(
   app,
   "SSCheckBackEndCdkPipeline",
-  stack_name = "sscheck-backend-pipeline",
+  stack_name="sscheck-backend-pipeline",
   tags={
     "sstage": app_stage,
-    "stack":"sscheck-backend-pipeline"
+    "stack": "sscheck-backend-pipeline"
   }
 )
 
