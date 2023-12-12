@@ -28,7 +28,7 @@ props = {
     "repository_source": "umccr/samplesheet-check-backend",
     "branch_source": {
         "dev": "dev",
-        "prod": "samplesheet"
+        "prod": "main"
     },
     "alias_domain_name": {
         "dev": ["api.sscheck.dev.umccr.org"],
