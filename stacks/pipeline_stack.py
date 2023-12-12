@@ -83,7 +83,7 @@ class PipelineStack(Stack):
                 "CDKShellScript",
                 input=code_pipeline_source,
                 commands=[
-                    "for dir in $(find ./lambdas/layers/ -maxdepth 1 -mindepth 1 -type d); do /bin/bash ./build_lambda_layers.sh ${dir}; done",
+                    "for dir in $(find ./src/layers/ -maxdepth 1 -mindepth 1 -type d); do /bin/bash ./build_lambda_layers.sh ${dir}; done",
 
                     # CDK lint test
                     "cdk synth",
@@ -92,13 +92,13 @@ class PipelineStack(Stack):
                     "cfn_nag_scan --input-path ./cfnnag_output",
 
                     # Lambda testing
-                    "cd lambdas",
+                    "cd src",
                     "pip install -r layers/runtime/requirements.txt",
-                    "pip install layers/umccr_utils/",
-                    "cd layers/umccr_utils",
-                    "python -m unittest umccr_utils/tests/test_api.py",
-                    "python -m unittest umccr_utils/tests/test_samplesheet.py",
-                    "cd ../../functions",
+                    "pip install layers/utils/",
+                    "cd layers/utils",
+                    "python -m unittest utils/tests/test_api.py",
+                    "python -m unittest utils/tests/test_samplesheet.py",
+                    "cd ../../samplesheet",
                     "python -m unittest tests/*",
                     "cd ../.."
                 ],

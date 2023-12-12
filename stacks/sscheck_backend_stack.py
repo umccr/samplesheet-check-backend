@@ -58,7 +58,7 @@ class SampleSheetCheckBackEndStack(Stack):
         sample_check_layer = lambda_.LayerVersion(
             self,
             "SamplecheckLambdaLayer",
-            code=lambda_.Code.from_asset("lambdas/layers/umccr_utils/python38-umccr_utils.zip"),
+            code=lambda_.Code.from_asset("src/layers/utils/python38-utils.zip"),
             compatible_runtimes=[lambda_.Runtime.PYTHON_3_10],
             description="A samplecheck library layer for python 3.10"
         )
@@ -66,7 +66,7 @@ class SampleSheetCheckBackEndStack(Stack):
         runtime_library_layer = lambda_.LayerVersion(
             self,
             "SSCheckLibraryRuntimeLambdaLayer",
-            code=lambda_.Code.from_asset("lambdas/layers/runtime/python38-runtime.zip"),
+            code=lambda_.Code.from_asset("src/layers/runtime/python38-runtime.zip"),
             compatible_runtimes=[lambda_.Runtime.PYTHON_3_10],
             description="Python library needed for SSCheck in python 3.10"
         )
@@ -78,8 +78,8 @@ class SampleSheetCheckBackEndStack(Stack):
             function_name="sscheck-backend",
             runtime=lambda_.Runtime.PYTHON_3_10,
             timeout=Duration.seconds(40),
-            code=lambda_.Code.from_asset("lambdas/functions"),
-            handler="main.lambda_handler",
+            code=lambda_.Code.from_asset("src/samplesheet"),
+            handler="samplesheet.lambda_handler",
             layers=[sample_check_layer, runtime_library_layer],
             memory_size=2048,
             environment={"data_portal_domain_name": data_portal_domain_name}

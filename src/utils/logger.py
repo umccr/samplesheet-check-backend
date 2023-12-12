@@ -3,7 +3,7 @@
 import inspect
 import logging
 from logging.handlers import RotatingFileHandler
-from umccr_utils.globals import LOGGER_STYLE
+from utils.globals import LOGGER_STYLE
 
 
 def get_caller_function():

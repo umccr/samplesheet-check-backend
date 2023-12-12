@@ -14,10 +14,10 @@ from typing import Dict, List
 from tempfile import NamedTemporaryFile
 import pandas as pd
 
-from umccr_utils import camel_to_snake
-from umccr_utils.samplesheet import SampleSheet, check_global_override_cycles
-from umccr_utils.logger import get_logger
-from umccr_utils.globals import V2_SAMPLESHEET_BCLCONVERT_ADAPTER_SETTINGS_BY_ASSAY_TYPE, \
+from utils import camel_to_snake
+from utils.samplesheet import SampleSheet, check_global_override_cycles
+from utils.logger import get_logger
+from utils.globals import V2_SAMPLESHEET_BCLCONVERT_ADAPTER_SETTINGS_BY_ASSAY_TYPE, \
     V2_ADAPTER_SETTINGS, V2_DATA_ROWS, V2_SAMPLESHEET_GLOBAL_SETTINGS, V2_SAMPLESHEET_DATA_SETTINGS
 from v2_samplesheet_maker.classes.samplesheet import SampleSheet as SampleSheetV2
 

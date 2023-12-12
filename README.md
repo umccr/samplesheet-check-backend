@@ -71,7 +71,7 @@ Before deploy the project layers **must** be compiled and zipped with the follow
 This stack deploys Lambda layers to provide runtime code to the Lambda function. Consequently, the Lambda layers must be built prior to stack deployment. This is done by running `build_lambda_layers.sh` on each Lambda layer directory in `lambda/layers/`. Run the following command to meet the lambda layer requirements. [Docker is required]
 
 ```bash
-for dir in $(find ./lambdas/layers/ -maxdepth 1 -mindepth 1 -type d); do
+for dir in $(find ./src/layers/ -maxdepth 1 -mindepth 1 -type d); do
   ./build_lambda_layers.sh ${dir};
 done
 ```
@@ -119,7 +119,7 @@ Install requirements into conda env / virtual env.
 ```bash
 conda activate samplesheet-check-backend
 
-pip install -r lambdas/layers/requirements.txt
+pip install -r src/layers/requirements.txt
 ```
 
 Set the PYTHONPATH env var to the layers directory so that the `umccr_utils` are
