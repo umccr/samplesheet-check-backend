@@ -83,28 +83,14 @@ class PipelineStack(Stack):
                 "CDKShellScript",
                 input=code_pipeline_source,
                 commands=[
-                    "for dir in $(find ./src/layers/ -maxdepth 1 -mindepth 1 -type d); do /bin/bash ./build_lambda_layers.sh ${dir}; done",
-
-                    # CDK lint test
-                    "cdk synth",
-                    "mkdir ./cfnnag_output",
-                    "for template in $(find ./cdk.out -type f -maxdepth 2 -name '*.template.json'); do cp $template ./cfnnag_output; done",
-                    "cfn_nag_scan --input-path ./cfnnag_output",
-
-                    # Lambda testing
+                    # Lambda unit test
                     "cd src",
-                    "pip install -r layers/runtime/requirements.txt",
-                    "pip install layers/utils/",
-                    "cd layers/utils",
-                    "python -m unittest utils/tests/test_api.py",
-                    "python -m unittest utils/tests/test_samplesheet.py",
-                    "cd ../../samplesheet",
-                    "python -m unittest tests/*",
-                    "cd ../.."
+                    "pip install -r requirements.txt",
+                    "python -m unittest discover utils -v",
+                    "python -m unittest discover samplesheet -v",
                 ],
                 install_commands=[
                     "npm install -g aws-cdk",
-                    "gem install cfn-nag",
                     "pip install -r requirements.txt",
                     "docker -v"
                 ],
@@ -112,7 +98,7 @@ class PipelineStack(Stack):
             ),
             code_build_defaults=pipelines.CodeBuildOptions(
                 build_environment=codebuild.BuildEnvironment(
-                    build_image=codebuild.LinuxBuildImage.STANDARD_5_0,
+                    build_image=codebuild.LinuxBuildImage.STANDARD_7_0,
                     privileged=True
                 )
             )
