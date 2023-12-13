@@ -2,10 +2,8 @@ cattrs==1.10.0
 certifi==2022.12.7
 charset-normalizer==2.0.4
 constructs==3.3.207
-frozenlist==1.3.0
 idna==3.2
 jsii==1.52.1
-multidict==6.0.2
 pandas==2.1.2
 publication==0.0.3
 python-dateutil==2.8.2
@@ -15,7 +13,6 @@ scipy==1.10.1
 six==1.16.0
 typing_extensions==4.6.1
 urllib3==1.26.6
-yarl==1.7.2
 aiohttp==3.9.1
 aiosignal==1.2.0
 async-timeout==4.0.2
