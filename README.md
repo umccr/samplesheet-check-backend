@@ -5,15 +5,13 @@ Project is the samplesheet check for the UMCCR backend and infrastructure.
 
 The project contains the `app.py` that is the main function of the app and directories:
 
-- *lambdas* -  the lambdas source code lives
-  - *functions* - the logic for the main function
-  - *layers* - dependencies for the function code to run
+- *src* -  the lambdas source code lives
 - *stacks* - the stack for which the code is structured at AWS
 
 
 # Setting up
 
-It is recomended to create a virtual environment for the app.
+It is recommended to create a virtual environment for the app.
 
 To do so please follow the instruction below.
 
@@ -21,7 +19,7 @@ Change your directory to the root of this readme file.
 
 Create a virtual environment for the app.
 ```
-$ python3 -m venv .venv
+$ virtualenv .venv --python=python3.11
 ```
 
 After the init process completes and the virtualenv is created, you can use the following
@@ -31,14 +29,9 @@ step to activate your virtualenv.
 $ source .venv/bin/activate
 ```
 
-If you are a Windows platform, you might try this:
-
+Install all dependencies
 ```
-% .venv\Scripts\activate.bat
-```
-Once the virtualenv is activated, you can install the required dependencies.
-
-```
+$ pip install -r src/requirements.txt
 $ pip install -r requirements.txt
 ```
 
@@ -65,19 +58,7 @@ $ cdk deploy SSCheckBackEndCdkPipeline --profile=${AWS_PROFILE}
 
 ## Deploying sscheck_backend_stack from local
 
-Before deploy the project layers **must** be compiled and zipped with the following command.
-
-### Lambda layer requirement
-This stack deploys Lambda layers to provide runtime code to the Lambda function. Consequently, the Lambda layers must be built prior to stack deployment. This is done by running `build_lambda_layers.sh` on each Lambda layer directory in `lambda/layers/`. Run the following command to meet the lambda layer requirements. [Docker is required]
-
-```bash
-for dir in $(find ./src/layers/ -maxdepth 1 -mindepth 1 -type d); do
-  ./build_lambda_layers.sh ${dir};
-done
-```
-### Deploying the cdk
-
-After successfully build, you can deploy the cdk with the following command
+You can deploy the cdk with the following command
 
 ```
 $ cdk deploy SSCheckBackEndCdkPipeline/SampleSheetCheckBackEndStage/SampleSheetCheckBackEnd --profile=${AWS_PROFILE}
@@ -97,6 +78,9 @@ aws lambda invoke \
 ```
 
 ## Testing locally
+
+Some unit test is in placed in the respective test folder. Alternatively, this section will give a tutorial
+to make your own testing script.
 
 This tutorial goes through running the samplesheet check functions locally.
 
@@ -220,9 +204,9 @@ cat << EOF > "${python_file}"
 #!/usr/bin/env python3
 
 # Imports
-from lambdas.functions.samplesheet_check import run_sample_sheet_content_check
-from lambdas.functions.samplesheet_check import run_sample_sheet_check_with_metadata
-from umccr_utils.samplesheet import SampleSheet
+from samplesheet.samplesheet_check import run_sample_sheet_content_check
+from samplesheet.samplesheet_check import run_sample_sheet_check_with_metadata
+from utils.samplesheet import SampleSheet
 
 # Get auth header for portal
 auth_header = "Bearer ${PORTAL_TOKEN}"
