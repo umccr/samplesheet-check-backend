@@ -1,3 +1,4 @@
+import os
 from constructs import Construct
 from aws_cdk import (
     Duration,
@@ -54,33 +55,17 @@ class SampleSheetCheckBackEndStack(Stack):
             certificate_arn=cert_use1_arn.string_value,
         )
 
-        # Create a Lambda Layer
-        sample_check_layer = lambda_.LayerVersion(
-            self,
-            "SamplecheckLambdaLayer",
-            code=lambda_.Code.from_asset("src/layers/utils/python38-utils.zip"),
-            compatible_runtimes=[lambda_.Runtime.PYTHON_3_10],
-            description="A samplecheck library layer for python 3.10"
-        )
-
-        runtime_library_layer = lambda_.LayerVersion(
-            self,
-            "SSCheckLibraryRuntimeLambdaLayer",
-            code=lambda_.Code.from_asset("src/layers/runtime/python38-runtime.zip"),
-            compatible_runtimes=[lambda_.Runtime.PYTHON_3_10],
-            description="Python library needed for SSCheck in python 3.10"
-        )
-
         # Create a lambda function along with the layered crated above
-        sample_sheet_check_lambda = lambda_.Function(
+        sample_sheet_check_lambda = lambda_.DockerImageFunction(
             self,
-            "SampleSheetValidationLambda",
-            function_name="sscheck-backend",
-            runtime=lambda_.Runtime.PYTHON_3_10,
+            "SamplesheetValidationLambda",
+            architecture=lambda_.Architecture.ARM_64,
             timeout=Duration.seconds(40),
-            code=lambda_.Code.from_asset("src/samplesheet"),
-            handler="samplesheet.lambda_handler",
-            layers=[sample_check_layer, runtime_library_layer],
+            code=lambda_.DockerImageCode.from_image_asset(
+                directory=os.path.abspath(os.path.join(os.path.dirname(__file__), '../')),
+                file="src/Dockerfile",
+                exclude=["cdk.out"]
+            ),
             memory_size=2048,
             environment={"data_portal_domain_name": data_portal_domain_name}
         )
