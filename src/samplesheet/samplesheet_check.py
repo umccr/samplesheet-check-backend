@@ -98,7 +98,7 @@ def run_sample_sheet_check_with_metadata(sample_sheet):
         _ = check_global_override_cycles(sample_sheet)
         logger.info('----------check_internal_override_cycles----------')
         check_internal_override_cycles(sample_sheet)
-        logger.info("logger.infoing the value_counts of the samplesheet (by assay, type and override cycles)")
+        logger.info("Info on the value_counts of the samplesheet (by assay, type and override cycles)")
         sample_sheet_df = pd.DataFrame([{"assay": sample.library_series['assay'],
                                          "type": sample.library_series['type'],
                                          "override_cycles": sample.library_series['override_cycles']}
