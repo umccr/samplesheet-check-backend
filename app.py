@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
 
-from aws_cdk import core as cdk
+from aws_cdk import App
 
 # Import cdk pipeline stack
 from stacks.pipeline_stack import PipelineStack
@@ -15,7 +15,6 @@ if account_id == "472057503814":  # Account number used for production environme
     app_stage = "prod"
 else:
     app_stage = "dev"
-
 
 props = {
     "pipeline_name": {
@@ -37,7 +36,7 @@ props = {
     }
 }
 
-app = cdk.App(
+app = App(
     context={
         "app_stage": app_stage,
         "props": props
@@ -45,13 +44,13 @@ app = cdk.App(
 )
 
 PipelineStack(
-  app,
-  "SSCheckBackEndCdkPipeline",
-  stack_name="sscheck-backend-pipeline",
-  tags={
-    "sstage": app_stage,
-    "stack": "sscheck-backend-pipeline"
-  }
+    app,
+    "SSCheckBackEndCdkPipeline",
+    stack_name="sscheck-backend-pipeline",
+    tags={
+        "sstage": app_stage,
+        "stack": "sscheck-backend-pipeline"
+    }
 )
 
 app.synth()

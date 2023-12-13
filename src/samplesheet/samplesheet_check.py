@@ -1,17 +1,9 @@
 #!/usr/bin/env python3
-
-# Logger
-from umccr_utils.logger import set_logger, set_basic_logger
-# Get functions
-from umccr_utils.samplesheet import get_years_from_samplesheet
-# Checks
-from umccr_utils.samplesheet import check_sample_sheet_for_index_clashes, \
+from utils.logger import set_logger, set_basic_logger
+from utils.samplesheet import get_years_from_samplesheet, check_sample_sheet_for_index_clashes, \
     check_metadata_correspondence, check_samplesheet_header_metadata, \
-    check_global_override_cycles, check_internal_override_cycles
-# Sets
-from umccr_utils.samplesheet import set_meta_data_by_library_id
-# Errors
-from umccr_utils.errors import GetMetaDataError, SampleSheetHeaderError, SimilarIndexError, \
+    check_global_override_cycles, check_internal_override_cycles,  set_metadata_by_library_id
+from utils.errors import GetMetaDataError, SampleSheetHeaderError, SimilarIndexError, \
     SampleNameFormatError, MetaDataError, OverrideCyclesError
 import pandas as pd
 
@@ -61,9 +53,9 @@ async def run_sample_sheet_content_check(sample_sheet):
         logger.info("Samplesheet contains IDs from {} years: {}".format(len(years), ', '.join(map(str, list(years)))))
 
     try:
-        print('----------check_samplesheet_header_metadata----------')
+        logger.info('----------check_samplesheet_header_metadata----------')
         check_samplesheet_header_metadata(sample_sheet)
-        print('----------check_sample_sheet_for_index_clashes----------')
+        logger.info('----------check_sample_sheet_for_index_clashes----------')
         check_sample_sheet_for_index_clashes(sample_sheet)
     except SampleSheetHeaderError:
         logger.error("Samplesheet header did not have the appropriate attributes")
@@ -98,15 +90,15 @@ def run_sample_sheet_check_with_metadata(sample_sheet):
 
     # Run through checks with metadata integrate
     try:
-        print('----------set_meta_data_by_library_id----------')
-        set_meta_data_by_library_id(sample_sheet)
-        print('----------check_metadata_correspondence----------')
+        logger.info('----------set_metadata_by_library_id----------')
+        set_metadata_by_library_id(sample_sheet)
+        logger.info('----------check_metadata_correspondence----------')
         check_metadata_correspondence(sample_sheet)
-        print('----------check_global_override_cycles----------')
+        logger.info('----------check_global_override_cycles----------')
         _ = check_global_override_cycles(sample_sheet)
-        print('----------check_internal_override_cycles----------')
+        logger.info('----------check_internal_override_cycles----------')
         check_internal_override_cycles(sample_sheet)
-        logger.info("Printing the value_counts of the samplesheet (by assay, type and override cycles)")
+        logger.info("Info on the value_counts of the samplesheet (by assay, type and override cycles)")
         sample_sheet_df = pd.DataFrame([{"assay": sample.library_series['assay'],
                                          "type": sample.library_series['type'],
                                          "override_cycles": sample.library_series['override_cycles']}
@@ -115,16 +107,16 @@ def run_sample_sheet_check_with_metadata(sample_sheet):
 
     except SampleNameFormatError:
         logger.error("Sample name was not appropriate.")
-        return ("Sample name was not appropriate.")
+        return "Sample name was not appropriate."
     except MetaDataError:
         logger.error("Metadata could not be extracted")
-        return ("Metadata could not be extracted")
+        return "Metadata could not be extracted"
     except OverrideCyclesError:
         logger.error("Override cycles check failed")
-        return ("Override cycles check failed")
+        return "Override cycles check failed"
     except GetMetaDataError:
         logger.error("Unable to get metadata")
-        return ("Unable to get metadata")
+        return "Unable to get metadata"
     except Exception as e:
         logger.error(f"Unknown samplesheet error. Error: {e}")
-        return (f"Unknown samplesheet error. Error: {e}")
+        return f"Unknown samplesheet error. Error: {e}"

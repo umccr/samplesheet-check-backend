@@ -15,4 +15,4 @@ __pycache__
 cdk.out
 cfnnag_output
 /sample_file/
-/lambdas/layers/umccr_utils/python/
+/src/layers/umccr_utils/python/

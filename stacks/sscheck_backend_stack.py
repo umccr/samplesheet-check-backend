@@ -1,5 +1,8 @@
+import os
+from constructs import Construct
 from aws_cdk import (
-    core as cdk,
+    Duration,
+    Stack,
     aws_apigateway as apigateway,
     aws_lambda as lambda_,
     aws_cognito as cognito,
@@ -10,9 +13,9 @@ from aws_cdk import (
 )
 
 
-class SampleSheetCheckBackEndStack(cdk.Stack):
+class SampleSheetCheckBackEndStack(Stack):
 
-    def __init__(self, scope: cdk.Construct, construct_id: str, **kwargs) -> None:
+    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         # --- Cognito parameters are from data portal terraform stack
@@ -52,33 +55,17 @@ class SampleSheetCheckBackEndStack(cdk.Stack):
             certificate_arn=cert_use1_arn.string_value,
         )
 
-        # Create a Lambda Layer
-        sample_check_layer = lambda_.LayerVersion(
-            self,
-            "SamplecheckLambdaLayer",
-            code=lambda_.Code.from_asset("lambdas/layers/umccr_utils/python38-umccr_utils.zip"),
-            compatible_runtimes=[lambda_.Runtime.PYTHON_3_10],
-            description="A samplecheck library layer for python 3.10"
-        )
-
-        runtime_library_layer = lambda_.LayerVersion(
-            self,
-            "SSCheckLibraryRuntimeLambdaLayer",
-            code=lambda_.Code.from_asset("lambdas/layers/runtime/python38-runtime.zip"),
-            compatible_runtimes=[lambda_.Runtime.PYTHON_3_10],
-            description="Python library needed for SSCheck in python 3.10"
-        )
-
         # Create a lambda function along with the layered crated above
-        sample_sheet_check_lambda = lambda_.Function(
+        sample_sheet_check_lambda = lambda_.DockerImageFunction(
             self,
-            "SampleSheetValidationLambda",
-            function_name="sscheck-backend",
-            runtime=lambda_.Runtime.PYTHON_3_10,
-            timeout=cdk.Duration.seconds(40),
-            code=lambda_.Code.from_asset("lambdas/functions"),
-            handler="main.lambda_handler",
-            layers=[sample_check_layer, runtime_library_layer],
+            "SamplesheetValidationLambda",
+            architecture=lambda_.Architecture.ARM_64,
+            timeout=Duration.seconds(40),
+            code=lambda_.DockerImageCode.from_image_asset(
+                directory=os.path.abspath(os.path.join(os.path.dirname(__file__), '../')),
+                file="src/Dockerfile",
+                exclude=["cdk.out"]
+            ),
             memory_size=2048,
             environment={"data_portal_domain_name": data_portal_domain_name}
         )

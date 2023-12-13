@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 """
-Sample-sheet functions to be used in the checker script
+Sample-sheet samplesheet to be used in the checker script
 """
 
 # Standards
@@ -10,26 +10,17 @@ from typing import List
 
 import pandas as pd
 import collections
-# Extras
 from scipy.spatial import distance
-# Logs
-from umccr_utils.logger import get_logger
-# Errors
-from umccr_utils.errors import SampleSheetFormatError, SampleDuplicateError, SampleNotFoundError, \
+
+from utils.logger import get_logger
+from utils.errors import SampleSheetFormatError, SampleDuplicateError, SampleNotFoundError, \
     ColumnNotFoundError, LibraryNotFoundError, MultipleLibraryError, GetMetaDataError, SimilarIndexError, \
     SampleSheetHeaderError, MetaDataError, InvalidColumnError, SampleNameFormatError, OverrideCyclesError, \
     ApiCallError
-
-# Regexes
-from umccr_utils.globals import SAMPLE_REGEX_OBJS, SAMPLESHEET_REGEX_OBJS, OVERRIDE_CYCLES_OBJS, \
+from utils.globals import SAMPLE_REGEX_OBJS, SAMPLESHEET_REGEX_OBJS, OVERRIDE_CYCLES_OBJS, \
     MIN_INDEX_HAMMING_DISTANCE
-
-# Column name validations
-from umccr_utils.globals import METADATA_COLUMN_NAMES, METADATA_VALIDATION_COLUMN_NAMES, \
-    REQUIRED_SAMPLE_SHEET_DATA_COLUMN_NAMES, VALID_SAMPLE_SHEET_DATA_COLUMN_NAMES
-
-# Calling API functions
-from umccr_utils.api import get_metadata_record_from_array_of_field_name
+from utils.globals import METADATA_COLUMN_NAMES, REQUIRED_SAMPLE_SHEET_DATA_COLUMN_NAMES, VALID_SAMPLE_SHEET_DATA_COLUMN_NAMES
+from utils.api import get_metadata_record_from_array_of_field_name
 
 logger = get_logger()
 
@@ -503,7 +494,7 @@ def get_years_from_samplesheet(samplesheet):
     return years
 
 
-def set_meta_data_by_library_id(samplesheet):
+def set_metadata_by_library_id(samplesheet):
     """
     Get the library ID from the metadata tracking sheet
     :param samplesheet:

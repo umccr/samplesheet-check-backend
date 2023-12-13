@@ -1,6 +1,6 @@
 import json
 import os
-from aiohttp import ClientSession
+import aiohttp
 import requests
 from typing import List
 from urllib.parse import urlparse
@@ -22,7 +22,7 @@ async def get_metadata_record_from_array_of_field_name(auth_header: str, path: s
     # Result variable
     query_result = []
 
-    async with ClientSession() as session:
+    async with aiohttp.ClientSession() as session:
 
         # Set maximum batch API call to 300 to prevent "Request Header Fields Too Large"
         max_number_of_library_per_api_call = 300
@@ -33,8 +33,6 @@ async def get_metadata_record_from_array_of_field_name(auth_header: str, path: s
             end_index = start_index + max_number_of_library_per_api_call
 
             array_to_process = value_list[start_index:end_index]
-
-            print(len(array_to_process))
 
             # Define query string
             query_param_string = f'&{field_name}='.join(array_to_process)
