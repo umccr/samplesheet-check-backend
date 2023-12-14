@@ -64,7 +64,7 @@ class SampleSheetCheckBackEndStack(Stack):
             code=lambda_.DockerImageCode.from_image_asset(
                 directory=os.path.abspath(os.path.join(os.path.dirname(__file__), '../')),
                 file="src/Dockerfile",
-                exclude=["cdk.out"]
+                exclude=["cdk.out", ".venv", "venv"]
             ),
             memory_size=2048,
             environment={"data_portal_domain_name": data_portal_domain_name}
