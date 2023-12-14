@@ -83,6 +83,9 @@ class PipelineStack(Stack):
                 "CDKShellScript",
                 input=code_pipeline_source,
                 commands=[
+                    # Synth CDK
+                    "cdk synth",
+
                     # Lambda unit test
                     "cd src",
                     "pip install -r requirements.txt",
