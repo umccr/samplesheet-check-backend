@@ -78,6 +78,8 @@ class PipelineStack(Stack):
         self_mutate_pipeline = pipelines.CodePipeline(
             self,
             "CodePipeline",
+            docker_enabled_for_synth=True,
+            self_mutation=True,
             code_pipeline=sscheck_backend_pipeline,
             synth=pipelines.ShellStep(
                 "CDKShellScript",
