@@ -234,7 +234,8 @@ V2_DATA_ROWS = [
     "index",
     "index2",
     "sample_project",
-    "sample_name"
+    "sample_name",
+    "library_prep_kit_name"
 ]
 
 # Non-adapter settings that can be data settings

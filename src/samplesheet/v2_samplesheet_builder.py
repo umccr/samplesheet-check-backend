@@ -64,7 +64,8 @@ def get_bclconvert_settings_by_library_id(library_id: str, samplesheet: SampleSh
     library_id_metadata = samplesheet.metadata_df.query(f"library_id=='{library_id}'").squeeze()
 
     bclconvert_settings_dict = {
-        "override_cycles": library_id_metadata["override_cycles"]
+        "override_cycles": library_id_metadata["override_cycles"],
+        "library_prep_kit_name": library_id_metadata["assay"]
     }
 
     for adapter_setting in V2_ADAPTER_SETTINGS:
