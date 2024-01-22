@@ -17,8 +17,11 @@ import pandas as pd
 from utils import camel_to_snake
 from utils.samplesheet import SampleSheet, check_global_override_cycles
 from utils.logger import get_logger
-from utils.globals import V2_SAMPLESHEET_BCLCONVERT_ADAPTER_SETTINGS_BY_ASSAY_TYPE, \
-    V2_ADAPTER_SETTINGS, V2_DATA_ROWS, V2_SAMPLESHEET_GLOBAL_SETTINGS, V2_SAMPLESHEET_DATA_SETTINGS
+from utils.globals import (
+    V2_SAMPLESHEET_BCLCONVERT_ADAPTER_SETTINGS_BY_ASSAY_TYPE,
+    V2_ADAPTER_SETTINGS, V2_DATA_ROWS, V2_SAMPLESHEET_GLOBAL_SETTINGS, V2_SAMPLESHEET_DATA_SETTINGS,
+    V2_BCLCONVERT_BASESPACE_URN
+)
 from v2_samplesheet_maker.classes.samplesheet import SampleSheet as SampleSheetV2
 
 logger = get_logger()
@@ -61,7 +64,8 @@ def get_bclconvert_settings_by_library_id(library_id: str, samplesheet: SampleSh
     library_id_metadata = samplesheet.metadata_df.query(f"library_id=='{library_id}'").squeeze()
 
     bclconvert_settings_dict = {
-        "override_cycles": library_id_metadata["override_cycles"]
+        "override_cycles": library_id_metadata["override_cycles"],
+        "library_prep_kit_name": library_id_metadata["assay"]
     }
 
     for adapter_setting in V2_ADAPTER_SETTINGS:
@@ -223,7 +227,10 @@ def get_bclconvert_settings_dict(samplesheet: SampleSheet) -> Dict:
     for setting_key, setting_value in bclconvert_settings_dict.items():
         bclconvert_settings_dict[setting_key] = V2_SAMPLESHEET_GLOBAL_SETTINGS[setting_key](setting_value)
 
-    # Return bclconvert settings dcit
+    # Add in BCLConvert URN
+    bclconvert_settings_dict["urn"] = V2_BCLCONVERT_BASESPACE_URN
+
+    # Return bclconvert settings dict
     return bclconvert_settings_dict
 
 
@@ -404,12 +411,18 @@ def v1_samplesheet_to_json(samplesheet: SampleSheet) -> Dict:
         bclconvert_data_list
     )
 
+    cloud_settings_section = {
+        "generated_version": "0.0.0",
+        "cloud_workflow": "ica_workflow_1"
+    }
+
     # Write out json
     return {
         "header": header_dict,
         "reads": reads_dict,
         "bclconvert_settings": bclconvert_settings_dict,
-        "bclconvert_data": bclconvert_data_list
+        "bclconvert_data": bclconvert_data_list,
+        "cloud_settings": cloud_settings_section
     }
 
 

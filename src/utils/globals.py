@@ -185,6 +185,7 @@ ADAPTERS_BY_KIT = {
     },
 }
 
+V2_BCLCONVERT_BASESPACE_URN = "urn:ilmn:ica:pipeline:bf93b5cf-cb27-4dfa-846e-acd6eb081aca#BclConvert_v4_2_7"
 
 V2_SAMPLESHEET_BCLCONVERT_ADAPTER_SETTINGS_BY_ASSAY_TYPE = {
     # All 10X sample types
@@ -233,7 +234,8 @@ V2_DATA_ROWS = [
     "index",
     "index2",
     "sample_project",
-    "sample_name"
+    "sample_name",
+    "library_prep_kit_name"
 ]
 
 # Non-adapter settings that can be data settings
