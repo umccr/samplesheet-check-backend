@@ -16,3 +16,4 @@ cdk.out
 cfnnag_output
 /sample_file/
 /src/layers/umccr_utils/python/
+.aws-sam

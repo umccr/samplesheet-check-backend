@@ -5,7 +5,8 @@ import os
 import logging
 import asyncio
 
-from samplesheet.samplesheet_check import run_sample_sheet_content_check, run_sample_sheet_check_with_metadata, construct_logger
+from samplesheet.samplesheet_check import run_sample_sheet_content_check, run_sample_sheet_check_with_metadata, \
+    construct_logger
 
 from utils.samplesheet import SampleSheet
 from utils.globals import LOG_DIRECTORY
@@ -121,7 +122,10 @@ def lambda_handler(event, context):
         return response
 
     # Check v2 samplesheet
-    v2_samplesheet_str = v1_to_v2_samplesheet(sample_sheet)
+    try:
+        v2_samplesheet_str = v1_to_v2_samplesheet(sample_sheet)
+    except:
+        v2_samplesheet_str = "error - something went wrong when creating the v2 samplesheet"
 
     # Construct Response
     body = construct_body(check_status='PASS', log_path=log_path, v2_samplesheet_str=v2_samplesheet_str)
