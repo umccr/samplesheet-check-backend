@@ -56,6 +56,35 @@ Deploy pipeline stack
 $ cdk deploy SSCheckBackEndCdkPipeline --profile=${AWS_PROFILE}
 ```
 
+## Starting API locally
+
+Prerequisite:
+```
+sam --version
+SAM CLI, version 1.100.
+
+cdk --version
+2.115.0 (build 58027ee)
+```
+
+The local start could configure the domain name for the metadata lookup. Currently, it is pointing to `localhost:8000` where the data-portal-api operate locally, 
+but alternatively you could change and points to remote domain name (e.g. `api.data.dev.umccr.org` or `api.data.prod.umccr.org`).
+Just need to pass in the appropriate bearer token when calling this local endpoint.
+
+To start simply use the makefile to start a local api running in `localhost:8001`. Run:
+```make start```
+
+You could call this endpoint with the following command.
+```curl
+curl --location 'http://127.0.0.1:8001/' \
+--header 'Authorization: Bearer ${TOKEN}' \
+--form 'file=@"/the/samplesheet/path"' \
+--form 'logLevel="ERROR"'
+```
+
+You could import this to postman and take advantage of the UI to select the appropriate SS file.
+
+
 ## Deploying sscheck_backend_stack from local
 
 You can deploy the cdk with the following command
