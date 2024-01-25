@@ -199,7 +199,7 @@ V2_SAMPLESHEET_BCLCONVERT_ADAPTER_SETTINGS_BY_ASSAY_TYPE = {
         "adapter_read_2": ""
     },
     # TSO Assays
-    ".*:ctTSO|TSODNA|TSORNA": {
+    "ctDNA:ctTSO|TSODNA|TSORNA": {
         "adapter_read_1": ADAPTERS_BY_KIT["truseq"]["adapter_read_1"],
         "adapter_read_2": ADAPTERS_BY_KIT["truseq"]["adapter_read_2"],
         "adapter_behavior": "trim",
