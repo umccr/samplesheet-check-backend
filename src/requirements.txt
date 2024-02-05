@@ -2,4 +2,4 @@ pandas==2.1.2
 requests==2.31.0
 scipy==1.10.1
 aiohttp==3.9.1
-v2-samplesheet-maker==4.2.4.post20240116152716
+v2-samplesheet-maker==4.2.4.post20240205170611
