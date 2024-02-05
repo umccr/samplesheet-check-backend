@@ -21,7 +21,7 @@ from utils.globals import (
     V2_SAMPLESHEET_BCLCONVERT_ADAPTER_SETTINGS_BY_ASSAY_TYPE,
     V2_ADAPTER_SETTINGS, V2_DATA_ROWS, V2_SAMPLESHEET_GLOBAL_SETTINGS, V2_SAMPLESHEET_DATA_SETTINGS,
     V2_BCLCONVERT_BASESPACE_URN,
-    V2_CTTSO_VALID_INDEXES
+    V2_CTTSO_VALID_INDEXES, V2_BCLCONVERT_BASESPACE_SOFTWARE_VERSION
 )
 from v2_samplesheet_maker.classes.samplesheet import SampleSheet as SampleSheetV2
 
@@ -256,7 +256,9 @@ def get_bclconvert_settings_dict(samplesheet: SampleSheet) -> Dict:
         bclconvert_settings_dict[setting_key] = V2_SAMPLESHEET_GLOBAL_SETTINGS[setting_key](setting_value)
 
     # Add in BCLConvert URN
+    # Add in Software Version too
     bclconvert_settings_dict["urn"] = V2_BCLCONVERT_BASESPACE_URN
+    bclconvert_settings_dict["software_version"] = V2_BCLCONVERT_BASESPACE_SOFTWARE_VERSION
 
     # Return bclconvert settings dict
     return bclconvert_settings_dict
