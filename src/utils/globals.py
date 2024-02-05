@@ -199,6 +199,13 @@ V2_SAMPLESHEET_BCLCONVERT_ADAPTER_SETTINGS_BY_ASSAY_TYPE = {
         "adapter_read_2": ""
     },
     # TSO Assays
+    "ctDNA:ctTSOv2": {
+        "adapter_read_1": ADAPTERS_BY_KIT["nextera"]["adapter_read_1"],
+        "adapter_read_2": ADAPTERS_BY_KIT["nextera"]["adapter_read_1"],  # Not a typo, both adapter reads are the same
+        "adapter_behavior": "trim",
+        "minimum_trimmed_read_length": 35,
+        "mask_short_reads": 35,
+    },
     "ctDNA:ctTSO|TSODNA|TSORNA": {
         "adapter_read_1": ADAPTERS_BY_KIT["truseq"]["adapter_read_1"],
         "adapter_read_2": ADAPTERS_BY_KIT["truseq"]["adapter_read_2"],
