@@ -23,7 +23,7 @@ from utils.globals import (
     V2_BCLCONVERT_BASESPACE_URN,
     V2_CTTSO_VALID_INDEXES, V2_BCLCONVERT_BASESPACE_SOFTWARE_VERSION
 )
-from v2_samplesheet_maker.classes.samplesheet import SampleSheet as SampleSheetV2
+from v2_samplesheet_maker.functions.v2_samplesheet_writer import v2_samplesheet_writer
 
 logger = get_logger()
 
@@ -509,17 +509,17 @@ def build_v2_samplesheet(samplesheet_json: dict) -> str:
     Returns:
     str: A string representation of the version 2 SampleSheet.
     """
-    tmp_file_object = NamedTemporaryFile(
-        prefix="v2_samplesheet_",
-        suffix=".csv"
-    )
 
-    # Write to CSV
-    SampleSheetV2(samplesheet_json).to_csv(Path(tmp_file_object.name))
+    with NamedTemporaryFile(prefix="v2_samplesheet_", suffix=".csv") as tmp_file_obj_h:
+        # Write to CSV
+        v2_samplesheet_writer(
+            samplesheet_json,
+            Path(tmp_file_obj_h.name)
+        )
 
-    # Read as str
-    with open(tmp_file_object.name, "r") as f_h:
-        return f_h.read()
+        # Read as str
+        with open(tmp_file_obj_h.name, "r") as f_h:
+            return f_h.read()
 
 
 def v1_to_v2_samplesheet(samplesheet):
