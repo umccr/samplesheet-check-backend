@@ -20,11 +20,39 @@ from utils.logger import get_logger
 from utils.globals import (
     V2_SAMPLESHEET_BCLCONVERT_ADAPTER_SETTINGS_BY_ASSAY_TYPE,
     V2_ADAPTER_SETTINGS, V2_DATA_ROWS, V2_SAMPLESHEET_GLOBAL_SETTINGS, V2_SAMPLESHEET_DATA_SETTINGS,
-    V2_BCLCONVERT_BASESPACE_URN
+    V2_BCLCONVERT_BASESPACE_URN,
+    V2_CTTSO_VALID_INDEXES, V2_BCLCONVERT_BASESPACE_SOFTWARE_VERSION, EXPERIMENT_REGEX_STR
 )
-from v2_samplesheet_maker.classes.samplesheet import SampleSheet as SampleSheetV2
+from v2_samplesheet_maker.functions.v2_samplesheet_writer import v2_samplesheet_writer
 
 logger = get_logger()
+
+
+def get_cttso_index_id_from_index(index_str: str, index_type: str) -> str:
+    """
+    Base function for get_cttso_i7_index_id_from_index and get_cttso_i5_index_id_from_index2
+    """
+    try:
+        return next(
+            filter(
+                lambda index_dict: index_dict.get(index_type) == index_str,
+                V2_CTTSO_VALID_INDEXES
+            )
+        ).get("index_id")
+    except StopIteration:
+        logger.error(f"Could not get index id for {index_type} - {index_str}")
+        raise ValueError
+
+
+def get_cttso_i7_index_id_from_index(i7_index_str: str) -> str:
+    return get_cttso_index_id_from_index(i7_index_str, "index")
+
+
+def get_cttso_i5_index_id_from_index(i5_index_str: str, is_forward_index_orientation: bool = False) -> str:
+    if is_forward_index_orientation:
+        return get_cttso_index_id_from_index(i5_index_str, "index2")
+    else:
+        return get_cttso_index_id_from_index(i5_index_str, "index2_rev")
 
 
 def get_bclconvert_adapter_setting_by_type_and_assay(sample_type: str, sample_assay: str, setting_name: str) -> str:
@@ -228,7 +256,9 @@ def get_bclconvert_settings_dict(samplesheet: SampleSheet) -> Dict:
         bclconvert_settings_dict[setting_key] = V2_SAMPLESHEET_GLOBAL_SETTINGS[setting_key](setting_value)
 
     # Add in BCLConvert URN
+    # Add in Software Version too
     bclconvert_settings_dict["urn"] = V2_BCLCONVERT_BASESPACE_URN
+    bclconvert_settings_dict["software_version"] = V2_BCLCONVERT_BASESPACE_SOFTWARE_VERSION
 
     # Return bclconvert settings dict
     return bclconvert_settings_dict
@@ -314,6 +344,14 @@ def get_bclconvert_data_list(samplesheet: SampleSheet) -> List:
     # Drop tailing N's from index and index2
     for index_col in ['index', 'index2']:
         data_dict_list_df[index_col] = data_dict_list_df[index_col].str.rstrip("N")
+
+    # Strip topup and reruns from sample id names
+    data_dict_list_df["sample_id"] = data_dict_list_df["sample_id"].apply(
+        lambda sample_id: re.sub(EXPERIMENT_REGEX_STR["top_up"], "", sample_id)
+    )
+    data_dict_list_df["sample_id"] = data_dict_list_df["sample_id"].apply(
+        lambda sample_id: re.sub(EXPERIMENT_REGEX_STR["rerun"], "", sample_id)
+    )
 
     # Convert to dataframe and drop empty columns
     data_dict_list_df = data_dict_list_df.replace(
@@ -417,13 +455,56 @@ def v1_samplesheet_to_json(samplesheet: SampleSheet) -> Dict:
     }
 
     # Write out json
-    return {
+    samplesheet_dict = {
         "header": header_dict,
         "reads": reads_dict,
         "bclconvert_settings": bclconvert_settings_dict,
         "bclconvert_data": bclconvert_data_list,
         "cloud_settings": cloud_settings_section
     }
+
+    # Check if any cttso samples in the bclconvert data list
+    cttso_bclconvert_data_list = list(
+        filter(
+            lambda bclconvert_iter: bclconvert_iter.get("library_prep_kit_name", "").lower() == 'cttsov2',
+            bclconvert_data_list
+        )
+    )
+    if len(cttso_bclconvert_data_list) > 0:
+        # Has a cttso sample, lets generate the TSO500L_Settings and TSO500L_Data section -
+        # We don't make these 'Cloud_' settings as we don't want to run these through auto launch
+        # These are hardcoded
+        tso500l_settings = {
+            "adapter_read_1": "CTGTCTCTTATACACATCT",
+            "adapter_read_2": "CTGTCTCTTATACACATCT",
+            "adapter_behaviour": "trim",
+            "minimum_trimmed_read_length": 35,
+            "mask_short_reads": 35,
+            "override_cycles": "U7N1Y143;I10;I10;U7N1Y143"
+        }
+        tso500l_data = list(
+            map(
+                lambda bclconvert_data_item: {
+                    "sample_id": bclconvert_data_item.get("sample_id"),
+                    "index": bclconvert_data_item.get("index"),
+                    "index2": bclconvert_data_item.get("index2"),
+                    "sample_type": "DNA",
+                    "lane": bclconvert_data_item.get("lane"),
+                    "i7_index_id": get_cttso_i7_index_id_from_index(bclconvert_data_item.get("index")),
+                    "i5_index_id": get_cttso_i5_index_id_from_index(bclconvert_data_item.get("index2"))
+                },
+                cttso_bclconvert_data_list
+            )
+        )
+
+        samplesheet_dict.update(
+            {
+                "tso500l_settings": tso500l_settings,
+                "tso500l_data": tso500l_data
+            }
+        )
+
+    return samplesheet_dict
 
 
 def build_v2_samplesheet(samplesheet_json: dict) -> str:
@@ -436,17 +517,17 @@ def build_v2_samplesheet(samplesheet_json: dict) -> str:
     Returns:
     str: A string representation of the version 2 SampleSheet.
     """
-    tmp_file_object = NamedTemporaryFile(
-        prefix="v2_samplesheet_",
-        suffix=".csv"
-    )
 
-    # Write to CSV
-    SampleSheetV2(samplesheet_json).to_csv(Path(tmp_file_object.name))
+    with NamedTemporaryFile(prefix="v2_samplesheet_", suffix=".csv") as tmp_file_obj_h:
+        # Write to CSV
+        v2_samplesheet_writer(
+            samplesheet_json,
+            Path(tmp_file_obj_h.name)
+        )
 
-    # Read as str
-    with open(tmp_file_object.name, "r") as f_h:
-        return f_h.read()
+        # Read as str
+        with open(tmp_file_obj_h.name, "r") as f_h:
+            return f_h.read()
 
 
 def v1_to_v2_samplesheet(samplesheet):
