@@ -21,7 +21,7 @@ from utils.globals import (
     V2_SAMPLESHEET_BCLCONVERT_ADAPTER_SETTINGS_BY_ASSAY_TYPE,
     V2_ADAPTER_SETTINGS, V2_DATA_ROWS, V2_SAMPLESHEET_GLOBAL_SETTINGS, V2_SAMPLESHEET_DATA_SETTINGS,
     V2_BCLCONVERT_BASESPACE_URN,
-    V2_CTTSO_VALID_INDEXES, V2_BCLCONVERT_BASESPACE_SOFTWARE_VERSION
+    V2_CTTSO_VALID_INDEXES, V2_BCLCONVERT_BASESPACE_SOFTWARE_VERSION, EXPERIMENT_REGEX_STR
 )
 from v2_samplesheet_maker.functions.v2_samplesheet_writer import v2_samplesheet_writer
 
@@ -345,6 +345,14 @@ def get_bclconvert_data_list(samplesheet: SampleSheet) -> List:
     for index_col in ['index', 'index2']:
         data_dict_list_df[index_col] = data_dict_list_df[index_col].str.rstrip("N")
 
+    # Strip topup and reruns from sample id names
+    data_dict_list_df["sample_id"] = data_dict_list_df["sample_id"].apply(
+        lambda sample_id: re.sub(EXPERIMENT_REGEX_STR["top_up"], "", sample_id)
+    )
+    data_dict_list_df["sample_id"] = data_dict_list_df["sample_id"].apply(
+        lambda sample_id: re.sub(EXPERIMENT_REGEX_STR["rerun"], "", sample_id)
+    )
+
     # Convert to dataframe and drop empty columns
     data_dict_list_df = data_dict_list_df.replace(
         {
@@ -458,7 +466,7 @@ def v1_samplesheet_to_json(samplesheet: SampleSheet) -> Dict:
     # Check if any cttso samples in the bclconvert data list
     cttso_bclconvert_data_list = list(
         filter(
-            lambda bclconvert_iter: bclconvert_iter.get("library_prep_kit_name", "").lower().startswith("cttso"),
+            lambda bclconvert_iter: bclconvert_iter.get("library_prep_kit_name", "").lower() == 'cttsov2',
             bclconvert_data_list
         )
     )
