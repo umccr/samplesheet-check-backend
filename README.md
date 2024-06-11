@@ -67,7 +67,7 @@ cdk --version
 ```
 
 The local start could configure the domain name for the metadata lookup. Currently, it is pointing to `localhost:8000` where the data-portal-api operate locally, 
-but alternatively you could change and points to remote domain name (e.g. `api.data.dev.umccr.org` or `api.data.prod.umccr.org`).
+but alternatively you could change and points to remote domain name (e.g. `api.portal.dev.umccr.org` or `api.portal.prod.umccr.org`).
 Just need to pass in the appropriate bearer token when calling this local endpoint.
 
 To start simply use the makefile to start a local api running in `localhost:8001`. Run:
@@ -166,7 +166,7 @@ An example shell script testing the samplesheet `samplesheet.csv` is shown below
 
 This script expects the user to have set the following environment variables:
   * `PORTAL_TOKEN` (can be obtained from the data.umccr.org home page)
-  * `data_portal_domain_name` set to `api.data.prod.umccr.org` or `api.data.dev.umccr.org`
+  * `data_portal_domain_name` set to `api.portal.prod.umccr.org` or `api.portal.dev.umccr.org`
 
 ```bash
 #!/usr/bin/env bash
