@@ -26,7 +26,7 @@ props = {
     },
     "branch_source": {
         "dev": "dev",
-        "stg": "stg",
+        "stg":  "feat/55-stg-deployment",
         "prod": "main"
     },
     "alias_domain_name": {
