@@ -1,4 +1,6 @@
 install:
+	@corepack enable
+	@yarn set version stable
 	@yarn install
 	@pip install -r requirements.txt
 	@pip install -r src/requirements.txt
