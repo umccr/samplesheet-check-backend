@@ -63,12 +63,12 @@ class PipelineStack(Stack):
             artifact_bucket=pipeline_artifact_bucket,
             restart_execution_on_update=True,
             cross_account_keys=False,
-            pipeline_name=props["pipeline_name"][app_stage],
+            pipeline_name="sscheck-backend",
         )
 
         # Fetch github repository for changes
         code_pipeline_source = pipelines.CodePipelineSource.connection(
-            repo_string=props["repository_source"],
+            repo_string="umccr/samplesheet-check-backend",
             branch=props["branch_source"][app_stage],
             connection_arn=codestar_arn,
             trigger_on_push=True
@@ -86,17 +86,15 @@ class PipelineStack(Stack):
                 input=code_pipeline_source,
                 commands=[
                     # Synth CDK
-                    "cdk synth",
+                    "yarn cdk synth",
 
                     # Lambda unit test
                     "cd src",
-                    "pip install -r requirements.txt",
                     "python -m unittest discover utils -v",
                     "python -m unittest discover samplesheet -v",
                 ],
                 install_commands=[
-                    "npm install -g aws-cdk",
-                    "pip install -r requirements.txt",
+                    "make install",
                     "docker -v"
                 ],
                 primary_output_directory="cdk.out"
@@ -133,7 +131,7 @@ class PipelineStack(Stack):
             topic_arn=data_portal_notification_sns_arn
         )
 
-        # Add Chatbot Notificaiton
+        # Add Chatbot Notification
         self_mutate_pipeline.pipeline.notify_on(
             "SlackNotificationSscheckBackEndPipeline",
             target=data_portal_sns_notification,

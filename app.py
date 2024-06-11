@@ -10,28 +10,28 @@ from stacks.pipeline_stack import PipelineStack
 account_id = os.environ.get('CDK_DEFAULT_ACCOUNT')
 aws_region = os.environ.get('CDK_DEFAULT_REGION')
 
-# Determine account stage (Identify if it is running on prod or dev)
-if account_id == "472057503814":  # Account number used for production environment
+# Determine account stage (Identify if it is running on prod, stg, or dev)
+if account_id == "472057503814":  # Prod account
     app_stage = "prod"
+elif account_id == "455634345446":  # Staging account
+    app_stage = "stg"
 else:
     app_stage = "dev"
 
 props = {
-    "pipeline_name": {
-        "dev": "sscheck-backend",
-        "prod": "sscheck-backend"
-    },
     "pipeline_artifact_bucket_name": {
         "dev": "sscheck-backend-artifact-dev",
+        "stg": "sscheck-backend-artifact-stg",
         "prod": "sscheck-backend-artifact-prod"
     },
-    "repository_source": "umccr/samplesheet-check-backend",
     "branch_source": {
         "dev": "dev",
+        "stg": "stg",
         "prod": "main"
     },
     "alias_domain_name": {
         "dev": ["api.sscheck.dev.umccr.org"],
+        "stg": ["api.sscheck.stg.umccr.org"],
         "prod": ["api.sscheck.umccr.org", "api.sscheck.prod.umccr.org"]
     }
 }
@@ -48,7 +48,7 @@ PipelineStack(
     "SSCheckBackEndCdkPipeline",
     stack_name="sscheck-backend-pipeline",
     tags={
-        "sstage": app_stage,
+        "stage": app_stage,
         "stack": "sscheck-backend-pipeline"
     }
 )

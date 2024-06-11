@@ -26,25 +26,24 @@ After the init process completes and the virtualenv is created, you can use the 
 step to activate your virtualenv.
 
 ```
-$ source .venv/bin/activate
+source .venv/bin/activate
 ```
 
 Install all dependencies
 ```
-$ pip install -r src/requirements.txt
-$ pip install -r requirements.txt
+make install
 ```
 
 # Stack Deployment
 
 **Prerequisite**
-- A valid SSL Certificate in `us-east-1` region at ACM for all the domain name needed. See [here](app.py#L35) (`alias_domain_name` on the props variable) on what domain need to be included, determined based on which account is deployed.
+- A valid SSL Certificate in `us-east-1` region at ACM for all the domain name needed. See [here](app.py#L33) (`alias_domain_name` on the props variable) on what domain need to be included, determined based on which account is deployed.
 - SSM Parameter for the certificate ARN created above with the name of `/sscheck/api/ssl_certificate_arn`
 
 _Deploying the stack without prerequisite above may result in a stack rollback_
 
 There are 2 stacks in this application:
-- *data_portal_status_page* - Contains the applications stack
+- *sscheck-backend* - Contains the applications stack
 - *pipeline* - Contains the pipeline for the stack to run and self update
 
 
