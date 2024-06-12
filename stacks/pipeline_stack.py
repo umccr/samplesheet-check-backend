@@ -122,7 +122,7 @@ class PipelineStack(Stack):
         chatbot_alerts_arn = ssm.StringParameter.from_string_parameter_attributes(
             self,
             "ChatbotAlertsARN",
-            parameter_name="/ chatbot/slack/umccr/alerts-arn"
+            parameter_name="/chatbot/slack/umccr/alerts-arn"
         ).string_value
 
         chatbot_slack_alerts = chatbot.SlackChannelConfiguration.from_slack_channel_configuration_arn(
