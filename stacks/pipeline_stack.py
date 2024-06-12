@@ -9,7 +9,8 @@ from aws_cdk import (
     aws_codepipeline as codepipeline,
     aws_sns as sns,
     aws_codestarnotifications as codestarnotifications,
-    aws_codebuild as codebuild
+    aws_codebuild as codebuild,
+    aws_chatbot as chatbot
 )
 from stacks.sscheck_backend_stack import SampleSheetCheckBackEndStack
 
@@ -117,24 +118,23 @@ class PipelineStack(Stack):
 
         self_mutate_pipeline.build_pipeline()
 
-        # SSM parameter for AWS SNS ARN
-        data_portal_notification_sns_arn = ssm.StringParameter.from_string_parameter_attributes(
+        # SSM parameter for AWS Slack Alerts Chatbot ARN
+        chatbot_alerts_arn = ssm.StringParameter.from_string_parameter_attributes(
             self,
-            "DataPortalSNSArn",
-            parameter_name="/data_portal/backend/notification_sns_topic_arn"
+            "ChatbotAlertsARN",
+            parameter_name="/ chatbot/slack/umccr/alerts-arn"
         ).string_value
 
-        # SNS chatbot
-        data_portal_sns_notification = sns.Topic.from_topic_arn(
+        chatbot_slack_alerts = chatbot.SlackChannelConfiguration.from_slack_channel_configuration_arn(
             self,
-            "DataPortalSNS",
-            topic_arn=data_portal_notification_sns_arn
+            'SlackAlertsChannelConfiguration',
+            chatbot_alerts_arn
         )
 
         # Add Chatbot Notification
         self_mutate_pipeline.pipeline.notify_on(
             "SlackNotificationSscheckBackEndPipeline",
-            target=data_portal_sns_notification,
+            target=chatbot_slack_alerts,
             events=[
                 codepipeline.PipelineNotificationEvents.PIPELINE_EXECUTION_FAILED,
                 codepipeline.PipelineNotificationEvents.PIPELINE_EXECUTION_SUCCEEDED
