@@ -94,7 +94,7 @@ class ApiUnitTestCase(TestCase):
                       "mlhdCI6MTUxNjIzOTAyMiwiZXhwIjoxNTE2MjM5MDIyLCJnYTRnaF92aXNhX3YxIjp7InR5cGUiOiJDb250cm9sbGVkQWN" \
                       "jZXNzR3JhbnRzIiwiYXNzZXJ0ZWQiOjE1NDk2MzI4NzIsInZhbHVlIjoiaHR0cHM6Ly91bWNjci5vcmcvaW52YWxpZC8xI" \
                       "iwic291cmNlIjoiaHR0cHM6Ly9ncmlkLmFjL2luc3RpdHV0ZXMvZ3JpZC4wMDAwLjBhIiwiYnkiOiJkYWMifX0.5DIqppX" \
-                      "02Rkw2Ebk4KgvPlbKVBwS1dPiSeLaLLQDjBg "
+                      "02Rkw2Ebk4KgvPlbKVBwS1dPiSeLaLLQDjBg"
 
         with self.assertRaises(ValueError):
             asyncio.run(get_metadata_record_from_array_of_field_name(invalid_jwt, "", "", [""]))

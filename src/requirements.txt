@@ -1,5 +1,5 @@
-pandas==2.1.2
-requests==2.31.0
-scipy==1.10.1
-aiohttp==3.9.1
+pandas==2.2.2
+requests==2.32.3
+scipy==1.13.1
+aiohttp==3.9.5
 v2-samplesheet-maker==v4.2.4.post20240305101119
