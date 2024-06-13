@@ -1,7 +1,7 @@
 
 # samplesheet-check-backend
 
-Project is the samplesheet check for the UMCCR backend and infrastructure.
+This Project is the samplesheet check for the UMCCR backend and infrastructure.
 
 The project contains the `app.py` which is the main function of the app and directories:
 
@@ -79,7 +79,7 @@ aws lambda invoke \
   output.json
 ```
 
-## Running SSCHECK API locally
+## Running SS Check API locally
 
 Prerequisite:
 
