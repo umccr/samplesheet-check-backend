@@ -184,7 +184,7 @@ def construct_response(status_code, body, origin):
 
     # Configuration of allowed origin
     allowed_origin_list = ['https://sscheck.umccr.org', 'https://sscheck.dev.umccr.org',
-                           'https://sscheck.prod.umccr.org']
+                           'https://sscheck.stg.umccr.org', 'https://sscheck.prod.umccr.org']
 
     if origin in allowed_origin_list:
         return_origin = origin
