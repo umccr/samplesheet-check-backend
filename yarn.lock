@@ -104,9 +104,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"aws-cdk@npm:2.145.0":
-  version: 2.145.0
-  resolution: "aws-cdk@npm:2.145.0"
+"aws-cdk@npm:2.148.1":
+  version: 2.148.1
+  resolution: "aws-cdk@npm:2.148.1"
   dependencies:
     fsevents: "npm:2.3.2"
   dependenciesMeta:
@@ -114,7 +114,7 @@ __metadata:
       optional: true
   bin:
     cdk: bin/cdk
-  checksum: 10c0/326adfea1d6860a50ca51ebb04450b58451b39e494b4b5f54634ba845a664c84bdda7c254f37d3e01b7cefd7198505d10e23eed1fb6d1425b26c588691c3ac2a
+  checksum: 10c0/cc0e3d6db31ff6bd35f78dc530fb079fe3d831f981af6bb5b9fc9b7fe44c15b69dbddaa79b832d71c4efbaa3b537a4ea9fa9ad6223ea07d101d94243c3392a21
   languageName: node
   linkType: hard
 
@@ -677,7 +677,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "samplesheet-check-backend@workspace:."
   dependencies:
-    aws-cdk: "npm:2.145.0"
+    aws-cdk: "npm:2.148.1"
   languageName: unknown
   linkType: soft
 
