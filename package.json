@@ -1,7 +1,7 @@
 {
   "name": "samplesheet-check-backend",
-  "packageManager": "yarn@4.3.0",
+  "packageManager": "yarn@4.4.1",
   "devDependencies": {
-    "aws-cdk": "2.145.0"
+    "aws-cdk": "2.157.0"
   }
 }
