@@ -1,3 +1,6 @@
+# Archived 🚧
+
+This has been moved to be part of the OrcaBus project.
 
 # samplesheet-check-backend
 
